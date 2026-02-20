@@ -22,12 +22,18 @@ struct SCSpatialDesktopAttemptPlan: Equatable {
     let action: SCSpatialDesktopAttemptAction
 }
 
+private struct PendingSpatialOverlayInfo {
+    let overlay: SCSpatialDesktopOverlayPlan
+    let destinationSpaceID: UInt64
+}
+
 @MainActor
 class SCCoordinator {
     static var shared: SCCoordinator?
     static let spacesPollInterval: TimeInterval = 3.0
     static let activationVerificationAttempts = 4
     static let activationVerificationDelay: TimeInterval = 0.18
+    static let spatialOverlayFallbackTimeout: TimeInterval = 0.8
 
     var desktopSwitcherController: SCDesktopSwitcherController?
     var spatialOverlayController: SCSpatialDesktopOverlayController?
@@ -41,6 +47,8 @@ class SCCoordinator {
     var spacesPollTimer: Timer?
     var pendingActivationID: UUID?
     var hasShownConfigurationWarning = false
+    private var pendingSpatialOverlay: PendingSpatialOverlayInfo?
+    private var spatialOverlayFallbackTimer: Timer?
 
     var hotKeyManager: SCHotKeyManager?
     var imageCaptureManager: SCDesktopImageCaptureManager?
@@ -81,6 +89,9 @@ class SCCoordinator {
         hotKeyManager?.unregisterAll()
         hotKeyManager = nil
         stopPolling()
+        spatialOverlayFallbackTimer?.invalidate()
+        spatialOverlayFallbackTimer = nil
+        pendingSpatialOverlay = nil
         imageCaptureManager?.invalidateAll()
         imageCaptureManager = nil
         desktopSwitcherController?.dismiss()
@@ -110,7 +121,30 @@ class SCCoordinator {
     }
 
     func handleSpaceChange() {
+        if let pending = pendingSpatialOverlay {
+            Spaces.refresh()
+            if Spaces.currentSpaceId == pending.destinationSpaceID {
+                pendingSpatialOverlay = nil
+                spatialOverlayFallbackTimer?.invalidate()
+                spatialOverlayFallbackTimer = nil
+                showSpatialOverlay(pending.overlay)
+            }
+        }
         refreshSpacesSnapshot()
+    }
+
+    private func showSpatialOverlay(_ overlay: SCSpatialDesktopOverlayPlan) {
+        switch overlay {
+        case .unavailable:
+            spatialOverlayController?.showUnavailableAttempt()
+        case .grid(let entries, let frames, let sourceIndex, let targetIndex):
+            spatialOverlayController?.show(
+                entries: entries,
+                frames: frames,
+                sourceIndex: sourceIndex,
+                targetIndex: targetIndex
+            )
+        }
     }
 
     func refreshSpacesSnapshot() {
@@ -180,24 +214,43 @@ class SCCoordinator {
             configuredRegularColumns: SCPreferences.loadDesktopColumns(),
             previewSize: SCPreferences.loadDesktopPreviewSize()
         )
-        switch plan.overlay {
-        case .unavailable:
-            spatialOverlayController?.showUnavailableAttempt()
-        case .grid(let entries, let frames, let sourceIndex, let targetIndex):
-            spatialOverlayController?.show(
-                entries: entries,
-                frames: frames,
-                sourceIndex: sourceIndex,
-                targetIndex: targetIndex
-            )
-        }
         switch plan.action {
         case .beep:
+            showSpatialOverlay(plan.overlay)
             NSSound.beep()
         case .activateRegular(let spaceIndex):
+            let spaceID = latestSpacesSnapshot?.spaces.first(where: { $0.spaceIndex == spaceIndex })?.spaceId
+            deferSpatialOverlay(plan.overlay, destinationSpaceID: spaceID)
             activateDesktop(spaceIndex)
         case .activateFullscreen(let spaceID, let screenUUID):
+            deferSpatialOverlay(plan.overlay, destinationSpaceID: spaceID)
             activateFullscreenDesktop(spaceID: spaceID, screenUUID: screenUUID)
+        }
+    }
+
+    private func deferSpatialOverlay(_ overlay: SCSpatialDesktopOverlayPlan, destinationSpaceID: UInt64?) {
+        if let destinationSpaceID {
+            pendingSpatialOverlay = PendingSpatialOverlayInfo(overlay: overlay, destinationSpaceID: destinationSpaceID)
+            scheduleSpatialOverlayFallback()
+        } else {
+            showSpatialOverlay(overlay)
+        }
+    }
+
+    private func flushPendingSpatialOverlay() {
+        guard let pending = pendingSpatialOverlay else { return }
+        pendingSpatialOverlay = nil
+        spatialOverlayFallbackTimer?.invalidate()
+        spatialOverlayFallbackTimer = nil
+        showSpatialOverlay(pending.overlay)
+    }
+
+    private func scheduleSpatialOverlayFallback() {
+        spatialOverlayFallbackTimer?.invalidate()
+        spatialOverlayFallbackTimer = Timer.scheduledTimer(withTimeInterval: Self.spatialOverlayFallbackTimeout, repeats: false) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.flushPendingSpatialOverlay()
+            }
         }
     }
 
@@ -223,6 +276,7 @@ class SCCoordinator {
         if success {
             Logger.info { "Fullscreen desktop activation via CGS spaceID=\(spaceID) screenUUID=\(screenUUID)" }
         } else {
+            flushPendingSpatialOverlay()
             NSSound.beep()
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.activationVerificationDelay) { [weak self] in
@@ -305,6 +359,7 @@ extension SCCoordinator {
             return
         }
         Logger.warning { "Regular desktop activation failed spaceIndex=\(spaceIndex)" }
+        flushPendingSpatialOverlay()
         NSSound.beep()
         refreshSpacesSnapshot()
     }
@@ -369,10 +424,12 @@ extension SCCoordinator {
                 }
             }
             if fallbackUsed {
+                self.flushPendingSpatialOverlay()
                 self.pendingActivationID = nil
                 self.refreshSpacesSnapshot()
                 return
             }
+            self.flushPendingSpatialOverlay()
             NSSound.beep()
             self.pendingActivationID = nil
             self.refreshSpacesSnapshot()
