@@ -429,6 +429,10 @@ extension App: NSApplicationDelegate {
         CursorEvents.observe()
         TrackpadEvents.observe()
         CliEvents.observe()
+        if SCPreferences.loadEnabled() {
+            SCCoordinator.shared = SCCoordinator()
+            SCCoordinator.shared?.start()
+        }
         PreferencesEvents.initialize()
         BenchmarkRunner.startIfNeeded()
         showSettingsWindowOnFirstLaunchIfNeeded()
@@ -444,6 +448,7 @@ extension App: NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        SCCoordinator.shared?.stop()
         // symbolic hotkeys state persist after the app is quit; we restore this shortcut before quitting
         setNativeCommandTabEnabled(true)
     }

@@ -124,6 +124,11 @@ func CGSCopyWindowsWithOptionsAndTags(_ cid: CGSConnectionID, _ owner: Int, _ sp
 @_silgen_name("CGSManagedDisplayGetCurrentSpace")
 func CGSManagedDisplayGetCurrentSpace(_ cid: CGSConnectionID, _ displayUuid: ScreenUuid) -> CGSSpaceID
 
+/// sets the current space on the provided display UUID
+/// * macOS 10.10+
+@_silgen_name("CGSManagedDisplaySetCurrentSpace") @discardableResult
+func CGSManagedDisplaySetCurrentSpace(_ cid: CGSConnectionID, _ display: CFString, _ space: CGSSpaceID) -> CGError
+
 /// adds the provided windows to the provided spaces
 /// * macOS 10.10-12.2
 @_silgen_name("CGSAddWindowsToSpaces")

@@ -6,6 +6,7 @@ class Spaces {
     static var visibleSpaces = [CGSSpaceID]()
     static var screenSpacesMap = [ScreenUuid: [CGSSpaceID]]()
     static var idsAndIndexes = [(CGSSpaceID, SpaceIndex)]()
+    static var fullscreenSpaceIds = Set<CGSSpaceID>()
 
     static func isSingleSpace() -> Bool {
         return idsAndIndexes.count == 1
@@ -41,6 +42,7 @@ class Spaces {
         idsAndIndexes.removeAll()
         screenSpacesMap.removeAll()
         visibleSpaces.removeAll()
+        fullscreenSpaceIds.removeAll()
         var spaceIndex = SpaceIndex(1)
         (CGSCopyManagedDisplaySpaces(CGS_CONNECTION) as! [NSDictionary]).forEach { (screen: NSDictionary) in
             var display = screen["Display Identifier"] as! ScreenUuid
@@ -51,6 +53,9 @@ class Spaces {
                 let spaceId = space["id64"] as! CGSSpaceID
                 idsAndIndexes.append((spaceId, spaceIndex))
                 screenSpacesMap[display, default: []].append(spaceId)
+                if space["type"] as? Int == 4 {
+                    fullscreenSpaceIds.insert(spaceId)
+                }
                 spaceIndex += 1
             }
             visibleSpaces.append((screen["Current Space"] as! NSDictionary)["id64"] as! CGSSpaceID)

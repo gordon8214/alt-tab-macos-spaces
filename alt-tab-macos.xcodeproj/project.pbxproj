@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		07692BD7086411391E361E97 /* SCDesktopSwitcherController+UI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22C7E4A8AC45391FD4E65F7 /* SCDesktopSwitcherController+UI.swift */; };
+		085C5284DAD6461CC00B5D26 /* SCDesktopSwitcherController+Visibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6089A2E41C09AD2CB63E7AA7 /* SCDesktopSwitcherController+Visibility.swift */; };
 		1C96101BC5817A7F85FA1F8D /* titles_show_running_applications_light@2x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1C961F57248D4E2377A9038E /* titles_show_running_applications_light@2x.jpg */; };
 		1C96108A0CB2565233FE100B /* TableGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C961FB3DCF4906FEEF4A23D /* TableGroupView.swift */; };
 		1C96109FD155140CBA709A16 /* app_icons_hide_tabs_as_windows_light@2x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1C961CABD14356E109102D56 /* app_icons_hide_tabs_as_windows_light@2x.jpg */; };
@@ -59,10 +61,17 @@
 		1C961F9CF4F1BEDF04ACAEE0 /* Switch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C96189273B7482124C36F4C /* Switch.swift */; };
 		1C961FA2D2D99AE54EBECA67 /* titles_show_running_windows_light@2x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1C9610B2E76F1E429C8D3660 /* titles_show_running_windows_light@2x.jpg */; };
 		1C961FB59566B8314771F58E /* thumbnails_show_preview_focused_window_light@2x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1C961EF84B061A68FD9AEC46 /* thumbnails_show_preview_focused_window_light@2x.jpg */; };
+		2DE7D3082D7C4C8E56E4FA7C /* SCDesktopSwitcherController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 668D1E1E79ADBF0AA127E452 /* SCDesktopSwitcherController.swift */; };
+		31FACC6EF46C21D557820CC8 /* SCDesktopSwitcherController+UICards.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47AD411B51553676ABABF59E /* SCDesktopSwitcherController+UICards.swift */; };
+		33481CB8DA8E3B936A86872C /* SpacesTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32299E40EC1AAFAF2AA78BC5 /* SpacesTab.swift */; };
+		3A0E50486A350BD63BF7C5F3 /* SCSpacesModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12B6C6A93658BE9E1F8EAB85 /* SCSpacesModel.swift */; };
 		442E26DB1F7DA80AF794CCB6 /* Pods_unit_tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7E6F409CA442F83B7BE71AD /* Pods_unit_tests.framework */; };
 		4807A6C623A9CD190052A53E /* SkyLight.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4807A6C523A9CD190052A53E /* SkyLight.framework */; };
 		48F3E16224EC0D8800A1C64B /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D04BABDA79F8EF76E3ACDD5F /* Localizable.strings */; };
+		54CBF33AE3B8DA10DA3FDFAD /* SCDesktopSwitcherController+Monitors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F74E4A143E8692D55CF67D8 /* SCDesktopSwitcherController+Monitors.swift */; };
 		5883F0A829A5182C0071DB65 /* TrackpadEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5883F0A729A5182C0071DB65 /* TrackpadEvents.swift */; };
+		58F694D1585FE04B694DCE17 /* SCStatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00839FFD3F51D4D246814E76 /* SCStatusBarController.swift */; };
+		59B1FD5ED7955E38C2B440DE /* SCCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC270A39B02C92DF1DB39E3 /* SCCoordinator.swift */; };
 		5F04852E2F09AC9700235D4A /* WindowCaptureEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F04852D2F09AC9700235D4A /* WindowCaptureEvents.swift */; };
 		5F17452E2F1A908D00128EF8 /* WindowDiscriminator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F17452D2F1A907800128EF8 /* WindowDiscriminator.swift */; };
 		5F21C9E02C6E94240091F72F /* ShortcutsWhenActiveSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F21C9DF2C6E94240091F72F /* ShortcutsWhenActiveSheet.swift */; };
@@ -83,8 +92,14 @@
 		5FBB24D32F389A0400BF7E14 /* Benchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FBB24D22F389A0400BF7E14 /* Benchmark.swift */; };
 		5FEFDF2F2F181E120065BAA3 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5FEFDF2D2F181E120065BAA3 /* Localizable.strings */; };
 		5FEFDF322F181E250065BAA3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5FEFDF312F181E250065BAA3 /* InfoPlist.strings */; };
+		6696E52C3B9FA8239580DBE7 /* SCDesktopSwitcherController+Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7625FCA2DB19C6FC1E2D7C3B /* SCDesktopSwitcherController+Math.swift */; };
+		69AD599D323C1829A87ACCFF /* SCTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 333A062099B6C22D3B942018 /* SCTypes.swift */; };
+		6BA51E55B59DB7BE2A77B202 /* SCSpatialDesktopOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF8138E3E768DADE165BFEEF /* SCSpatialDesktopOverlayController.swift */; };
 		76D02BB22BFE7C9E0056008D /* Pods_alt_tab_macos.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0712B3BEA2B3780398C0999 /* Pods_alt_tab_macos.framework */; };
+		899A95853E7929017A36892D /* SCSpaceActivator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603F557538746EF5196B4227 /* SCSpaceActivator.swift */; };
+		8FC2DF055FC7DAF9519A9894 /* SCDesktopSwitcherController+Math+Spatial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 144078CFBD9428476010D977 /* SCDesktopSwitcherController+Math+Spatial.swift */; };
 		AA974BA929B7D84C0099A29E /* PreviewPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA974BA829B7D84C0099A29E /* PreviewPanel.swift */; };
+		BC5632A3F59AE2E6D4346735 /* SCDesktopSwitcherController+Interaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38528060B2025B225396B623 /* SCDesktopSwitcherController+Interaction.swift */; };
 		BF0C803A13C409E7F01FBCAB /* SkyLight.framework.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF0C8B94D7994AB9007F6391 /* SkyLight.framework.swift */; };
 		BF0C80484AA63306D0DB4DB2 /* SpacesEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF0C8DF008F1EB5F23291A13 /* SpacesEvents.swift */; };
 		BF0C8052AE41B1B10E42BFCE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = BF0C875C983226CB16DBD90F /* InfoPlist.strings */; };
@@ -304,12 +319,16 @@
 		D04BAFC1A1B2C3D4E5F60002 /* TileOverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BAFC0A1B2C3D4E5F60001 /* TileOverView.swift */; };
 		D04BAFC3A1B2C3D4E5F60004 /* TileUnderLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BAFC2A1B2C3D4E5F60003 /* TileUnderLayer.swift */; };
 		D04BAFF30A98CF287F85DA1E /* BlacklistsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BA27695D9A5824720BD7B /* BlacklistsTab.swift */; };
+		D6E13A0AAE1D4144F6FD5C65 /* ModifierRecorderControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47CD2BB59DD77A7B29C2437A /* ModifierRecorderControl.swift */; };
 		F00DCAFE0000000000001002 /* Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00DCAFE0000000000000002 /* Search.swift */; };
 		F00DCAFE0000000000001003 /* SearchTestable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00DCAFE0000000000000003 /* SearchTestable.swift */; };
 		F00DCAFE0000000000001103 /* SearchTestable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00DCAFE0000000000000003 /* SearchTestable.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		00839FFD3F51D4D246814E76 /* SCStatusBarController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCStatusBarController.swift; sourceTree = "<group>"; };
+		12B6C6A93658BE9E1F8EAB85 /* SCSpacesModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCSpacesModel.swift; sourceTree = "<group>"; };
+		144078CFBD9428476010D977 /* SCDesktopSwitcherController+Math+Spatial.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "SCDesktopSwitcherController+Math+Spatial.swift"; sourceTree = "<group>"; };
 		1C961003A0D16B9AE3932B3F /* thumbnails_show_colored_circles_light@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "thumbnails_show_colored_circles_light@2x.jpg"; sourceTree = "<group>"; };
 		1C9610071E9F3434C893DC95 /* thumbnails_align_thumbnails_center_light@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "thumbnails_align_thumbnails_center_light@2x.jpg"; sourceTree = "<group>"; };
 		1C961093FB75180759EC6972 /* app_icons_hide_app_badges_light@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "app_icons_hide_app_badges_light@2x.jpg"; sourceTree = "<group>"; };
@@ -367,6 +386,11 @@
 		1C961F5740647DBFA0540789 /* thumbnails_show_tabs_as_windows_light@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "thumbnails_show_tabs_as_windows_light@2x.jpg"; sourceTree = "<group>"; };
 		1C961F68C77AAE38E5A2E046 /* app_icons_show_running_applications_light@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "app_icons_show_running_applications_light@2x.jpg"; sourceTree = "<group>"; };
 		1C961FB3DCF4906FEEF4A23D /* TableGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableGroupView.swift; sourceTree = "<group>"; };
+		32299E40EC1AAFAF2AA78BC5 /* SpacesTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SpacesTab.swift; sourceTree = "<group>"; };
+		333A062099B6C22D3B942018 /* SCTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCTypes.swift; sourceTree = "<group>"; };
+		38528060B2025B225396B623 /* SCDesktopSwitcherController+Interaction.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "SCDesktopSwitcherController+Interaction.swift"; sourceTree = "<group>"; };
+		47AD411B51553676ABABF59E /* SCDesktopSwitcherController+UICards.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "SCDesktopSwitcherController+UICards.swift"; sourceTree = "<group>"; };
+		47CD2BB59DD77A7B29C2437A /* ModifierRecorderControl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ModifierRecorderControl.swift; sourceTree = "<group>"; };
 		4807A6C523A9CD190052A53E /* SkyLight.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SkyLight.framework; path = ../../../../System/Library/PrivateFrameworks/SkyLight.framework; sourceTree = "<group>"; };
 		481FE54624D2D387001032F1 /* alt-tab-macos-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "alt-tab-macos-Bridging-Header.h"; sourceTree = "<group>"; };
 		5883F0A729A5182C0071DB65 /* TrackpadEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackpadEvents.swift; sourceTree = "<group>"; };
@@ -391,6 +415,7 @@
 		5F2218B02F156BC6005769F9 /* mascot-squirrel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mascot-squirrel.png"; sourceTree = "<group>"; };
 		5F706EBD2BA448B1004D542D /* is */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = is; path = Localizable.strings; sourceTree = "<group>"; };
 		5F706EC22BA448D8004D542D /* is */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = is; path = InfoPlist.strings; sourceTree = "<group>"; };
+		5F74E4A143E8692D55CF67D8 /* SCDesktopSwitcherController+Monitors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "SCDesktopSwitcherController+Monitors.swift"; sourceTree = "<group>"; };
 		5F7834AF2F47C12400340041 /* my */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = my; path = Localizable.strings; sourceTree = "<group>"; };
 		5F7834B42F47C14A00340041 /* my */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = my; path = InfoPlist.strings; sourceTree = "<group>"; };
 		5F791E4A2F1C65E100B6419C /* ApplicationDiscriminator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDiscriminator.swift; sourceTree = "<group>"; };
@@ -403,9 +428,15 @@
 		5FE2AF752EAE849F004A4AC5 /* xcbeautify */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = xcbeautify; sourceTree = "<group>"; };
 		5FEFDF2C2F181E120065BAA3 /* be */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = be; path = Localizable.strings; sourceTree = "<group>"; };
 		5FEFDF302F181E250065BAA3 /* InfoPlist.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = InfoPlist.strings; sourceTree = "<group>"; };
+		603F557538746EF5196B4227 /* SCSpaceActivator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCSpaceActivator.swift; sourceTree = "<group>"; };
+		6089A2E41C09AD2CB63E7AA7 /* SCDesktopSwitcherController+Visibility.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "SCDesktopSwitcherController+Visibility.swift"; sourceTree = "<group>"; };
+		668D1E1E79ADBF0AA127E452 /* SCDesktopSwitcherController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCDesktopSwitcherController.swift; sourceTree = "<group>"; };
 		672F94799CC7C90282AEB3EA /* Pods-alt-tab-macos.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-alt-tab-macos.debug.xcconfig"; path = "Target Support Files/Pods-alt-tab-macos/Pods-alt-tab-macos.debug.xcconfig"; sourceTree = "<group>"; };
 		7451B8433E47C444A6F489FF /* Pods-unit-tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-unit-tests.debug.xcconfig"; path = "Target Support Files/Pods-unit-tests/Pods-unit-tests.debug.xcconfig"; sourceTree = "<group>"; };
+		7625FCA2DB19C6FC1E2D7C3B /* SCDesktopSwitcherController+Math.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "SCDesktopSwitcherController+Math.swift"; sourceTree = "<group>"; };
+		8BC270A39B02C92DF1DB39E3 /* SCCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCCoordinator.swift; sourceTree = "<group>"; };
 		AA974BA829B7D84C0099A29E /* PreviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewPanel.swift; sourceTree = "<group>"; };
+		AF8138E3E768DADE165BFEEF /* SCSpatialDesktopOverlayController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCSpatialDesktopOverlayController.swift; sourceTree = "<group>"; };
 		BF0C800363086A5ED019FE11 /* google_translate_all_terms_locally.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = google_translate_all_terms_locally.py; sourceTree = "<group>"; };
 		BF0C804765D0E6A92C6646CC /* gu */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = gu; path = InfoPlist.strings; sourceTree = "<group>"; };
 		BF0C8070A1BBA8B425C8EF34 /* IOKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IOKit.swift; sourceTree = "<group>"; };
@@ -751,6 +782,7 @@
 		E20104DD2C3DE10E7CCC5B5A /* Pods-unit-tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-unit-tests.release.xcconfig"; path = "Target Support Files/Pods-unit-tests/Pods-unit-tests.release.xcconfig"; sourceTree = "<group>"; };
 		F00DCAFE0000000000000002 /* Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Search.swift; sourceTree = "<group>"; };
 		F00DCAFE0000000000000003 /* SearchTestable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTestable.swift; sourceTree = "<group>"; };
+		F22C7E4A8AC45391FD4E65F7 /* SCDesktopSwitcherController+UI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "SCDesktopSwitcherController+UI.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -907,6 +939,36 @@
 				5FEFDF2D2F181E120065BAA3 /* Localizable.strings */,
 			);
 			path = be.lproj;
+			sourceTree = "<group>";
+		};
+		94780C25274E0B717A5C3D23 /* space-commander */ = {
+			isa = PBXGroup;
+			children = (
+				668D1E1E79ADBF0AA127E452 /* SCDesktopSwitcherController.swift */,
+				F22C7E4A8AC45391FD4E65F7 /* SCDesktopSwitcherController+UI.swift */,
+				47AD411B51553676ABABF59E /* SCDesktopSwitcherController+UICards.swift */,
+				38528060B2025B225396B623 /* SCDesktopSwitcherController+Interaction.swift */,
+				7625FCA2DB19C6FC1E2D7C3B /* SCDesktopSwitcherController+Math.swift */,
+				144078CFBD9428476010D977 /* SCDesktopSwitcherController+Math+Spatial.swift */,
+				5F74E4A143E8692D55CF67D8 /* SCDesktopSwitcherController+Monitors.swift */,
+				6089A2E41C09AD2CB63E7AA7 /* SCDesktopSwitcherController+Visibility.swift */,
+				AF8138E3E768DADE165BFEEF /* SCSpatialDesktopOverlayController.swift */,
+				00839FFD3F51D4D246814E76 /* SCStatusBarController.swift */,
+			);
+			name = "space-commander";
+			path = "space-commander";
+			sourceTree = "<group>";
+		};
+		9A3E4CC5D10FD9ED463D24B6 /* space-commander */ = {
+			isa = PBXGroup;
+			children = (
+				333A062099B6C22D3B942018 /* SCTypes.swift */,
+				12B6C6A93658BE9E1F8EAB85 /* SCSpacesModel.swift */,
+				603F557538746EF5196B4227 /* SCSpaceActivator.swift */,
+				8BC270A39B02C92DF1DB39E3 /* SCCoordinator.swift */,
+			);
+			name = "space-commander";
+			path = "space-commander";
 			sourceTree = "<group>";
 		};
 		A638921971E99EC1D9EC383D /* Pods */ = {
@@ -1391,6 +1453,7 @@
 				BF0C8D57C86AF492D43A576D /* AppearanceTestable.swift */,
 				BF0C8998862E0E04D60CACBC /* MacroPreferences.swift */,
 				BF0C8F58B38F29B2662E6C2D /* PreferencesMigrations.swift */,
+				9A3E4CC5D10FD9ED463D24B6 /* space-commander */,
 			);
 			path = logic;
 			sourceTree = "<group>";
@@ -1494,6 +1557,7 @@
 				BF0C8468DF35990A7731D86C /* MainMenu.swift */,
 				BF0C80F8FAA00FF3D9682F26 /* DebugMenu.swift */,
 				AA974BA829B7D84C0099A29E /* PreviewPanel.swift */,
+				94780C25274E0B717A5C3D23 /* space-commander */,
 			);
 			path = ui;
 			sourceTree = "<group>";
@@ -1537,6 +1601,7 @@
 				BF0C8E63BE7394A6591E74E0 /* LightImageView.swift */,
 				BF0C8E64BE7394A6591E74E1 /* LightImageLayer.swift */,
 				BF0C8DC2A355E29516DD2FAF /* CustomRecorderControlTestable.swift */,
+				47CD2BB59DD77A7B29C2437A /* ModifierRecorderControl.swift */,
 			);
 			path = "generic-components";
 			sourceTree = "<group>";
@@ -1570,6 +1635,7 @@
 				D04BAD60C97E609A759E721E /* PoliciesTab.swift */,
 				D04BA788228BA86D9EFBD1ED /* AcknowledgmentsTab.swift */,
 				D04BA27695D9A5824720BD7B /* BlacklistsTab.swift */,
+				32299E40EC1AAFAF2AA78BC5 /* SpacesTab.swift */,
 			);
 			path = tabs;
 			sourceTree = "<group>";
@@ -2602,6 +2668,22 @@
 				BF0C8AD478399D2E97AE3FB4 /* CustomRecorderControlTestable.swift in Sources */,
 				BF0C8A5FA46C5E74A071FF4C /* ScrollwheelEvents.swift in Sources */,
 				BF0C82E9AB495AAAA182764A /* CursorEvents.swift in Sources */,
+				69AD599D323C1829A87ACCFF /* SCTypes.swift in Sources */,
+				3A0E50486A350BD63BF7C5F3 /* SCSpacesModel.swift in Sources */,
+				899A95853E7929017A36892D /* SCSpaceActivator.swift in Sources */,
+				59B1FD5ED7955E38C2B440DE /* SCCoordinator.swift in Sources */,
+				2DE7D3082D7C4C8E56E4FA7C /* SCDesktopSwitcherController.swift in Sources */,
+				07692BD7086411391E361E97 /* SCDesktopSwitcherController+UI.swift in Sources */,
+				31FACC6EF46C21D557820CC8 /* SCDesktopSwitcherController+UICards.swift in Sources */,
+				BC5632A3F59AE2E6D4346735 /* SCDesktopSwitcherController+Interaction.swift in Sources */,
+				6696E52C3B9FA8239580DBE7 /* SCDesktopSwitcherController+Math.swift in Sources */,
+				8FC2DF055FC7DAF9519A9894 /* SCDesktopSwitcherController+Math+Spatial.swift in Sources */,
+				54CBF33AE3B8DA10DA3FDFAD /* SCDesktopSwitcherController+Monitors.swift in Sources */,
+				085C5284DAD6461CC00B5D26 /* SCDesktopSwitcherController+Visibility.swift in Sources */,
+				6BA51E55B59DB7BE2A77B202 /* SCSpatialDesktopOverlayController.swift in Sources */,
+				58F694D1585FE04B694DCE17 /* SCStatusBarController.swift in Sources */,
+				D6E13A0AAE1D4144F6FD5C65 /* ModifierRecorderControl.swift in Sources */,
+				33481CB8DA8E3B936A86872C /* SpacesTab.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

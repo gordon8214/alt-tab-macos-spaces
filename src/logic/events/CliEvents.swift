@@ -50,8 +50,28 @@ class CliServer {
                 .map { JsonWindow(id: $0.cgWindowId, title: $0.title) }
             )
         }
+        if rawValue == "--spaces" {
+            Spaces.refresh()
+            return JsonSpacesList(
+                currentSpaceIndex: Spaces.currentSpaceIndex,
+                spaces: Spaces.idsAndIndexes.map { (spaceId, spaceIndex) in
+                    let screenUuid = Spaces.screenSpacesMap.first(where: { $0.value.contains(spaceId) })?.key as String? ?? ""
+                    return JsonSpace(
+                        spaceIndex: spaceIndex,
+                        spaceId: spaceId,
+                        isCurrent: spaceId == Spaces.currentSpaceId,
+                        isVisible: Spaces.visibleSpaces.contains(spaceId),
+                        isFullscreen: Spaces.fullscreenSpaceIds.contains(spaceId),
+                        screenUuid: screenUuid
+                    )
+                }
+            )
+        }
         if rawValue == "--detailed-list" {
-            return JsonWindowFullList(windows: Windows.list
+            Spaces.refresh()
+            return JsonWindowFullList(
+                currentSpaceIndex: Spaces.currentSpaceIndex,
+                windows: Windows.list
                 .filter { !$0.isWindowlessApp }
                 .map {
                     JsonWindowFull(
@@ -101,7 +121,22 @@ class CliServer {
     }
 
     private struct JsonWindowFullList: Codable {
+        var currentSpaceIndex: SpaceIndex
         var windows: [JsonWindowFull]
+    }
+
+    private struct JsonSpacesList: Codable {
+        var currentSpaceIndex: SpaceIndex
+        var spaces: [JsonSpace]
+    }
+
+    private struct JsonSpace: Codable {
+        var spaceIndex: SpaceIndex
+        var spaceId: CGSSpaceID
+        var isCurrent: Bool
+        var isVisible: Bool
+        var isFullscreen: Bool
+        var screenUuid: String
     }
 
     private struct JsonWindowFull: Codable {
@@ -127,7 +162,7 @@ class CliClient {
     static func detectCommand() -> String? {
         let args = CommandLine.arguments
         if args.count == 2 && !args[1].starts(with: "--logs=") {
-            if args[1] == "--list" || args[1] == "--detailed-list" || args[1].hasPrefix("--focus=") || args[1].hasPrefix("--focusUsingLastFocusOrder=") || args[1].hasPrefix("--show=") {
+            if args[1] == "--list" || args[1] == "--detailed-list" || args[1] == "--spaces" || args[1].hasPrefix("--focus=") || args[1].hasPrefix("--focusUsingLastFocusOrder=") || args[1].hasPrefix("--show=") {
                 return args[1]
             }
         }

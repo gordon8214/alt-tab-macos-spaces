@@ -13,6 +13,7 @@ class SpacesEvents {
             // this window doesn't emit resize/move events. It doesn't pass isActualWindow on creation. It's added on focusedWindowChanged
             // for such cases, we refresh isFullscreen on Space change
             Windows.updateIsFullscreenOnCurrentSpace()
+            DispatchQueue.main.async { SCCoordinator.shared?.handleSpaceChange() }
             if let frontmostPid = Applications.frontmostPid,
                let frontmostApp = Applications.findOrCreate(frontmostPid, false),
                let focusedWindow = frontmostApp.focusedWindow {
