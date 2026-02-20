@@ -160,6 +160,26 @@ struct SCKeyCombo: Codable, Sendable, Equatable {
     static func keyCodeToString(_ keyCode: UInt32) -> String {
         keyCodeMap[keyCode] ?? "Key\(keyCode)"
     }
+
+    /// Key equivalent string for ShortcutRecorder (e.g. "⌃⌥⌘d")
+    var shortcutKeyEquivalent: String {
+        var result = ""
+        if modifiers.contains(.control) { result += "⌃" }
+        if modifiers.contains(.option) { result += "⌥" }
+        if modifiers.contains(.shift) { result += "⇧" }
+        if modifiers.contains(.command) { result += "⌘" }
+        result += SCKeyCombo.keyCodeToString(keyCode).lowercased()
+        return result
+    }
+}
+
+extension SCKeyCombo {
+    init?(shortcutKeyCode: UInt16, modifierFlags: NSEvent.ModifierFlags) {
+        let carbonMods = SCCarbonModifiers(cocoaFlags: modifierFlags)
+        guard !carbonMods.isEmpty else { return nil }
+        self.keyCode = UInt32(shortcutKeyCode)
+        self.modifiers = carbonMods
+    }
 }
 
 enum SCPreferences {
@@ -173,6 +193,10 @@ enum SCPreferences {
     private static let menuBarDesktopIndicatorStyleKey = "menuBarDesktopIndicatorStyle"
     private static let showCustomDesktopTitleInMenuBarKey = "showCustomDesktopTitleInMenuBar"
     private static let spatialModifiersKey = "scSpatialModifiers"
+    private static let desktopSwitcherKeyCodeKey = "scDesktopSwitcherKeyCode"
+    private static let desktopSwitcherModifiersKey = "scDesktopSwitcherModifiers"
+    private static let firstEmptySpaceKeyCodeKey = "scFirstEmptySpaceKeyCode"
+    private static let firstEmptySpaceModifiersKey = "scFirstEmptySpaceModifiers"
 
     static func loadEnabled() -> Bool {
         // Default to true if key has never been set
@@ -237,6 +261,40 @@ enum SCPreferences {
 
     static func saveSpatialModifiers(_ modifiers: SCCarbonModifiers) {
         UserDefaults.standard.set(Int(modifiers.rawValue), forKey: spatialModifiersKey)
+    }
+
+    static func loadDesktopSwitcherShortcut() -> SCKeyCombo {
+        let keyCode = UserDefaults.standard.object(forKey: desktopSwitcherKeyCodeKey) as? Int
+        let modifiers = UserDefaults.standard.object(forKey: desktopSwitcherModifiersKey) as? Int
+        guard let keyCode, let modifiers else { return .defaultDesktopSwitcher }
+        return SCKeyCombo(keyCode: UInt32(keyCode), modifiers: SCCarbonModifiers(rawValue: UInt32(modifiers)))
+    }
+
+    static func saveDesktopSwitcherShortcut(_ combo: SCKeyCombo?) {
+        if let combo {
+            UserDefaults.standard.set(Int(combo.keyCode), forKey: desktopSwitcherKeyCodeKey)
+            UserDefaults.standard.set(Int(combo.modifiers.rawValue), forKey: desktopSwitcherModifiersKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: desktopSwitcherKeyCodeKey)
+            UserDefaults.standard.removeObject(forKey: desktopSwitcherModifiersKey)
+        }
+    }
+
+    static func loadFirstEmptySpaceShortcut() -> SCKeyCombo {
+        let keyCode = UserDefaults.standard.object(forKey: firstEmptySpaceKeyCodeKey) as? Int
+        let modifiers = UserDefaults.standard.object(forKey: firstEmptySpaceModifiersKey) as? Int
+        guard let keyCode, let modifiers else { return .defaultFirstEmptySpace }
+        return SCKeyCombo(keyCode: UInt32(keyCode), modifiers: SCCarbonModifiers(rawValue: UInt32(modifiers)))
+    }
+
+    static func saveFirstEmptySpaceShortcut(_ combo: SCKeyCombo?) {
+        if let combo {
+            UserDefaults.standard.set(Int(combo.keyCode), forKey: firstEmptySpaceKeyCodeKey)
+            UserDefaults.standard.set(Int(combo.modifiers.rawValue), forKey: firstEmptySpaceModifiersKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: firstEmptySpaceKeyCodeKey)
+            UserDefaults.standard.removeObject(forKey: firstEmptySpaceModifiersKey)
+        }
     }
 
     static func loadDesktopSwitcherFrame() -> NSRect? {

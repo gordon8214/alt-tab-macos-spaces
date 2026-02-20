@@ -2,6 +2,8 @@ import Cocoa
 
 class SpacesTab {
     private static var enabledToggle: NSButton?
+    private static var desktopSwitcherRecorder: SCShortcutRecorderControl?
+    private static var firstEmptySpaceRecorder: SCShortcutRecorderControl?
     private static var columnsTextField: NSTextField?
     private static var columnsStepper: NSStepper?
     private static var previewSizeDropdown: NSPopUpButton?
@@ -16,6 +18,32 @@ class SpacesTab {
         let enabledRow = TableGroupView.Row(
             leftTitle: NSLocalizedString("Enable Space Commander", comment: ""),
             rightViews: [enabledCheckbox]
+        )
+        let desktopSwitcherRec = SCShortcutRecorderControl(keyCombo: SCPreferences.loadDesktopSwitcherShortcut())
+        desktopSwitcherRec.onShortcutChanged = { combo in
+            SCPreferences.saveDesktopSwitcherShortcut(combo)
+            DispatchQueue.main.async {
+                SCCoordinator.shared?.hotKeyManager?.unregisterAll()
+                SCCoordinator.shared?.hotKeyManager?.registerAll()
+            }
+        }
+        desktopSwitcherRecorder = desktopSwitcherRec
+        let desktopSwitcherRow = TableGroupView.Row(
+            leftTitle: NSLocalizedString("Desktop switcher", comment: ""),
+            rightViews: [desktopSwitcherRec]
+        )
+        let firstEmptyRec = SCShortcutRecorderControl(keyCombo: SCPreferences.loadFirstEmptySpaceShortcut())
+        firstEmptyRec.onShortcutChanged = { combo in
+            SCPreferences.saveFirstEmptySpaceShortcut(combo)
+            DispatchQueue.main.async {
+                SCCoordinator.shared?.hotKeyManager?.unregisterAll()
+                SCCoordinator.shared?.hotKeyManager?.registerAll()
+            }
+        }
+        firstEmptySpaceRecorder = firstEmptyRec
+        let firstEmptyRow = TableGroupView.Row(
+            leftTitle: NSLocalizedString("First empty space", comment: ""),
+            rightViews: [firstEmptyRec]
         )
         let columnsField = NSTextField()
         columnsField.integerValue = SCPreferences.loadDesktopColumns()
@@ -88,6 +116,9 @@ class SpacesTab {
         )
         let table = TableGroupView(width: SettingsWindow.contentWidth)
         table.addRow(enabledRow)
+        table.addNewTable()
+        table.addRow(desktopSwitcherRow)
+        table.addRow(firstEmptyRow)
         table.addNewTable()
         table.addRow(desktopsPerRow)
         table.addRow(previewSize)

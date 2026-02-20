@@ -489,13 +489,13 @@ class SCHotKeyManager {
 
     func registerAll() {
         installHandler()
-        let desktopCombo = SCKeyCombo.defaultDesktopSwitcher
+        let desktopCombo = SCPreferences.loadDesktopSwitcherShortcut()
         registerHotKey(
             id: .desktopSwitcher,
             keyCode: desktopCombo.keyCode,
             modifiers: desktopCombo.modifiers
         )
-        let emptyCombo = SCKeyCombo.defaultFirstEmptySpace
+        let emptyCombo = SCPreferences.loadFirstEmptySpaceShortcut()
         registerHotKey(
             id: .firstEmptySpace,
             keyCode: emptyCombo.keyCode,
