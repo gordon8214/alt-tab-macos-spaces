@@ -131,12 +131,8 @@ class SCCoordinator {
         }
         latestSpacesSnapshot = snapshot
         if SCPreferences.loadDesktopPreviewStyle() == .images {
-            let isPanelVisible = desktopSwitcherController?.panel?.isVisible == true
             let allSpaceIDs = Set(snapshot.spaces.map(\.spaceId) + snapshot.fullscreenSpaces.map(\.spaceId))
             imageCaptureManager?.pruneStaleEntries(currentSpaceIDs: allSpaceIDs)
-            if !isPanelVisible {
-                imageCaptureManager?.captureVisibleSpaces()
-            }
         }
         statusBarController?.setSpacesSnapshot(snapshot)
         statusBarController?.setActiveDesktopIndex(snapshot.currentSpaceIndex)
@@ -149,6 +145,9 @@ class SCCoordinator {
         if desktopSwitcherController.panel?.isVisible == true {
             desktopSwitcherController.dismiss()
         } else {
+            if SCPreferences.loadDesktopPreviewStyle() == .images {
+                imageCaptureManager?.captureVisibleSpaces()
+            }
             refreshSpacesSnapshot()
             desktopSwitcherController.show()
         }
