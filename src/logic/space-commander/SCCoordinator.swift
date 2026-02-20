@@ -49,6 +49,7 @@ class SCCoordinator {
     var hasShownConfigurationWarning = false
     private var pendingSpatialOverlay: PendingSpatialOverlayInfo?
     private var spatialOverlayFallbackTimer: Timer?
+    private var spaceChangeOverlayObserver: NSObjectProtocol?
 
     var hotKeyManager: SCHotKeyManager?
     var imageCaptureManager: SCDesktopImageCaptureManager?
@@ -82,12 +83,25 @@ class SCCoordinator {
             self?.handleSpatialNavigation(direction)
         }
         hotKeyManager?.registerAll()
+        spaceChangeOverlayObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.activeSpaceDidChangeNotification,
+            object: nil,
+            queue: nil
+        ) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.handleImmediateSpaceChangeForOverlay()
+            }
+        }
         startPolling()
     }
 
     func stop() {
         hotKeyManager?.unregisterAll()
         hotKeyManager = nil
+        if let observer = spaceChangeOverlayObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            spaceChangeOverlayObserver = nil
+        }
         stopPolling()
         spatialOverlayFallbackTimer?.invalidate()
         spatialOverlayFallbackTimer = nil
@@ -121,16 +135,18 @@ class SCCoordinator {
     }
 
     func handleSpaceChange() {
-        if let pending = pendingSpatialOverlay {
-            Spaces.refresh()
-            if Spaces.currentSpaceId == pending.destinationSpaceID {
-                pendingSpatialOverlay = nil
-                spatialOverlayFallbackTimer?.invalidate()
-                spatialOverlayFallbackTimer = nil
-                showSpatialOverlay(pending.overlay)
-            }
-        }
         refreshSpacesSnapshot()
+    }
+
+    private func handleImmediateSpaceChangeForOverlay() {
+        guard let pending = pendingSpatialOverlay else { return }
+        Spaces.refresh()
+        if Spaces.currentSpaceId == pending.destinationSpaceID {
+            pendingSpatialOverlay = nil
+            spatialOverlayFallbackTimer?.invalidate()
+            spatialOverlayFallbackTimer = nil
+            showSpatialOverlay(pending.overlay)
+        }
     }
 
     private func showSpatialOverlay(_ overlay: SCSpatialDesktopOverlayPlan) {
