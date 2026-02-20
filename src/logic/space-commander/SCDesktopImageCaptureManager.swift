@@ -8,7 +8,7 @@ class SCDesktopImageCaptureManager {
     private let captureMinInterval: TimeInterval = 1.0
     private var captureInFlight = false
 
-    func captureVisibleSpaces() {
+    func captureVisibleSpaces(excludingWindowNumbers: [Int] = []) {
         let now = ProcessInfo.processInfo.systemUptime
         guard now - lastCaptureTime >= captureMinInterval else { return }
         guard !captureInFlight else { return }
@@ -38,16 +38,29 @@ class SCDesktopImageCaptureManager {
             return
         }
 
+        let excludedIDs = Set(excludingWindowNumbers.map { CGWindowID($0) })
         let maxW = maxWidth
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             var results = [(CGSSpaceID, CGImage)]()
             for target in captureTargets {
-                guard let cgImage = CGWindowListCreateImage(
-                    target.bounds,
-                    .optionOnScreenOnly,
-                    kCGNullWindowID,
-                    [.bestResolution]
-                ) else {
+                let cgImage: CGImage?
+                if excludedIDs.isEmpty {
+                    cgImage = CGWindowListCreateImage(
+                        target.bounds,
+                        .optionOnScreenOnly,
+                        kCGNullWindowID,
+                        [.bestResolution]
+                    )
+                } else {
+                    // Build a window list that excludes our panels
+                    let allWindows = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[CFString: Any]] ?? []
+                    let filteredIDs = allWindows.compactMap { info -> CGWindowID? in
+                        guard let windowID = info[kCGWindowNumber] as? CGWindowID else { return nil }
+                        return excludedIDs.contains(windowID) ? nil : windowID
+                    }
+                    cgImage = CGImage.windowListScreenshot(target.bounds, filteredIDs)
+                }
+                guard let cgImage else {
                     Logger.debug { "CGWindowListCreateImage returned nil for displayID=\(target.displayID)" }
                     continue
                 }
@@ -99,5 +112,16 @@ class SCDesktopImageCaptureManager {
         context.interpolationQuality = .high
         context.draw(image, in: CGRect(x: 0, y: 0, width: newWidth, height: newHeight))
         return context.makeImage() ?? image
+    }
+}
+
+extension CGImage {
+    static func windowListScreenshot(_ bounds: CGRect, _ windowIDs: [CGWindowID]) -> CGImage? {
+        guard !windowIDs.isEmpty else { return nil }
+        return CGImage(
+            windowListFromArrayScreenBounds: bounds,
+            windowArray: windowIDs as CFArray,
+            imageOption: [.bestResolution]
+        )
     }
 }

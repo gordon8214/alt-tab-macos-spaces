@@ -133,6 +133,7 @@ class SCCoordinator {
         if SCPreferences.loadDesktopPreviewStyle() == .images {
             let allSpaceIDs = Set(snapshot.spaces.map(\.spaceId) + snapshot.fullscreenSpaces.map(\.spaceId))
             imageCaptureManager?.pruneStaleEntries(currentSpaceIDs: allSpaceIDs)
+            imageCaptureManager?.captureVisibleSpaces(excludingWindowNumbers: panelWindowNumbers())
         }
         statusBarController?.setSpacesSnapshot(snapshot)
         statusBarController?.setActiveDesktopIndex(snapshot.currentSpaceIndex)
@@ -140,14 +141,19 @@ class SCCoordinator {
         maybeWarnAboutConfiguration(snapshot)
     }
 
+    func panelWindowNumbers() -> [Int] {
+        var numbers = [Int]()
+        if let wn = desktopSwitcherController?.panel?.windowNumber, wn > 0 {
+            numbers.append(wn)
+        }
+        return numbers
+    }
+
     func toggleDesktopSwitcher() {
         guard let desktopSwitcherController else { return }
         if desktopSwitcherController.panel?.isVisible == true {
             desktopSwitcherController.dismiss()
         } else {
-            if SCPreferences.loadDesktopPreviewStyle() == .images {
-                imageCaptureManager?.captureVisibleSpaces()
-            }
             refreshSpacesSnapshot()
             desktopSwitcherController.show()
         }
