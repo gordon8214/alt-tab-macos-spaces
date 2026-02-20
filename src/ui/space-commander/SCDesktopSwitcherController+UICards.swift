@@ -6,7 +6,8 @@ extension SCDesktopSwitcherController {
     func makeDesktopCard(
         for desktop: DesktopEntry,
         frame: CGRect,
-        previewSize: DesktopPreviewSize
+        previewSize: DesktopPreviewSize,
+        previewStyle: DesktopPreviewStyle
     ) -> SCDesktopCardView {
         let card = SCDesktopCardView(frame: frame)
         card.setAccessibilityRole(.button)
@@ -15,6 +16,9 @@ extension SCDesktopSwitcherController {
         let previewFrame = CGRect(x: 12, y: 12, width: frame.width - 24, height: previewSize.previewHeight)
         let previewView = SCDesktopLayoutPreviewView(frame: previewFrame)
         previewView.snapshot = desktop.layoutSnapshot
+        if previewStyle == .images {
+            previewView.desktopImage = imageProvider?(desktop.spaceId)
+        }
         previewView.wantsLayer = true
         previewView.layer?.cornerRadius = 9
         previewView.layer?.masksToBounds = true

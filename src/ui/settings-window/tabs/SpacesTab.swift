@@ -8,6 +8,7 @@ class SpacesTab {
     private static var firstEmptySpaceKeyRecorder: SCKeyRecorderControl?
     private static var columnsTextField: NSTextField?
     private static var columnsStepper: NSStepper?
+    private static var previewStyleDropdown: NSPopUpButton?
     private static var previewSizeDropdown: NSPopUpButton?
     private static var indicatorStyleDropdown: NSPopUpButton?
     private static var showCustomTitleToggle: NSButton?
@@ -89,6 +90,18 @@ class SpacesTab {
             leftTitle: NSLocalizedString("Preview size", comment: ""),
             rightViews: [previewDropdown]
         )
+        let styleDropdown = NSPopUpButton()
+        for style in DesktopPreviewStyle.allCases {
+            styleDropdown.addItem(withTitle: style.displayName)
+        }
+        styleDropdown.selectItem(at: SCPreferences.loadDesktopPreviewStyle().rawValue)
+        styleDropdown.target = self
+        styleDropdown.action = #selector(previewStyleChanged(_:))
+        previewStyleDropdown = styleDropdown
+        let previewStyle = TableGroupView.Row(
+            leftTitle: NSLocalizedString("Preview style", comment: ""),
+            rightViews: [styleDropdown]
+        )
         let indicatorDropdown = NSPopUpButton()
         for style in MenuBarDesktopIndicatorStyle.allCases {
             indicatorDropdown.addItem(withTitle: style.displayName)
@@ -127,6 +140,7 @@ class SpacesTab {
         table.addNewTable()
         table.addRow(desktopsPerRow)
         table.addRow(previewSize)
+        table.addRow(previewStyle)
         table.addNewTable()
         table.addRow(indicatorStyle)
         table.addRow(showCustomTitle)
@@ -187,6 +201,19 @@ class SpacesTab {
     @objc private static func previewSizeChanged(_ sender: NSPopUpButton) {
         guard let size = DesktopPreviewSize(rawValue: sender.indexOfSelectedItem) else { return }
         SCPreferences.saveDesktopPreviewSize(size)
+    }
+
+    @objc private static func previewStyleChanged(_ sender: NSPopUpButton) {
+        guard let style = DesktopPreviewStyle(rawValue: sender.indexOfSelectedItem) else { return }
+        SCPreferences.saveDesktopPreviewStyle(style)
+        DispatchQueue.main.async {
+            if style == .images {
+                SCCoordinator.shared?.imageCaptureManager?.captureVisibleSpaces()
+            } else {
+                SCCoordinator.shared?.imageCaptureManager?.invalidateAll()
+            }
+            SCCoordinator.shared?.refreshSpacesSnapshot()
+        }
     }
 
     @objc private static func indicatorStyleChanged(_ sender: NSPopUpButton) {

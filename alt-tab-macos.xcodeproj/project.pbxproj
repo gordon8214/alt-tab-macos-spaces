@@ -72,6 +72,7 @@
 		5883F0A829A5182C0071DB65 /* TrackpadEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5883F0A729A5182C0071DB65 /* TrackpadEvents.swift */; };
 		58F694D1585FE04B694DCE17 /* SCStatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00839FFD3F51D4D246814E76 /* SCStatusBarController.swift */; };
 		59B1FD5ED7955E38C2B440DE /* SCCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC270A39B02C92DF1DB39E3 /* SCCoordinator.swift */; };
+		A1B2C3D4E5F60718A9B0C1D2 /* SCDesktopImageCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D3 /* SCDesktopImageCaptureManager.swift */; };
 		5F04852E2F09AC9700235D4A /* WindowCaptureEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F04852D2F09AC9700235D4A /* WindowCaptureEvents.swift */; };
 		5F17452E2F1A908D00128EF8 /* WindowDiscriminator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F17452D2F1A907800128EF8 /* WindowDiscriminator.swift */; };
 		5F21C9E02C6E94240091F72F /* ShortcutsWhenActiveSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F21C9DF2C6E94240091F72F /* ShortcutsWhenActiveSheet.swift */; };
@@ -436,6 +437,7 @@
 		7451B8433E47C444A6F489FF /* Pods-unit-tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-unit-tests.debug.xcconfig"; path = "Target Support Files/Pods-unit-tests/Pods-unit-tests.debug.xcconfig"; sourceTree = "<group>"; };
 		7625FCA2DB19C6FC1E2D7C3B /* SCDesktopSwitcherController+Math.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "SCDesktopSwitcherController+Math.swift"; sourceTree = "<group>"; };
 		8BC270A39B02C92DF1DB39E3 /* SCCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCCoordinator.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718A9B0C1D3 /* SCDesktopImageCaptureManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCDesktopImageCaptureManager.swift; sourceTree = "<group>"; };
 		AA974BA829B7D84C0099A29E /* PreviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewPanel.swift; sourceTree = "<group>"; };
 		AF8138E3E768DADE165BFEEF /* SCSpatialDesktopOverlayController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCSpatialDesktopOverlayController.swift; sourceTree = "<group>"; };
 		BF0C800363086A5ED019FE11 /* google_translate_all_terms_locally.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = google_translate_all_terms_locally.py; sourceTree = "<group>"; };
@@ -968,6 +970,7 @@
 				12B6C6A93658BE9E1F8EAB85 /* SCSpacesModel.swift */,
 				603F557538746EF5196B4227 /* SCSpaceActivator.swift */,
 				8BC270A39B02C92DF1DB39E3 /* SCCoordinator.swift */,
+				A1B2C3D4E5F60718A9B0C1D3 /* SCDesktopImageCaptureManager.swift */,
 			);
 			name = "space-commander";
 			path = "space-commander";
@@ -2676,6 +2679,7 @@
 				3A0E50486A350BD63BF7C5F3 /* SCSpacesModel.swift in Sources */,
 				899A95853E7929017A36892D /* SCSpaceActivator.swift in Sources */,
 				59B1FD5ED7955E38C2B440DE /* SCCoordinator.swift in Sources */,
+				A1B2C3D4E5F60718A9B0C1D2 /* SCDesktopImageCaptureManager.swift in Sources */,
 				2DE7D3082D7C4C8E56E4FA7C /* SCDesktopSwitcherController.swift in Sources */,
 				07692BD7086411391E361E97 /* SCDesktopSwitcherController+UI.swift in Sources */,
 				31FACC6EF46C21D557820CC8 /* SCDesktopSwitcherController+UICards.swift in Sources */,

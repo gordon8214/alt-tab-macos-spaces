@@ -1,6 +1,24 @@
 import AppKit
 import Carbon.HIToolbox
 
+enum DesktopPreviewStyle: Int, CaseIterable, Codable, Sendable {
+    case shapes
+    case images
+
+    var displayName: String {
+        switch self {
+        case .shapes:
+            return NSLocalizedString("Shapes", comment: "")
+        case .images:
+            return NSLocalizedString("Screenshots", comment: "")
+        }
+    }
+
+    static var `default`: DesktopPreviewStyle {
+        .shapes
+    }
+}
+
 enum DesktopPreviewSize: Int, CaseIterable, Codable, Sendable {
     case small
     case medium
@@ -166,6 +184,7 @@ struct SCKeyCombo: Codable, Sendable, Equatable {
 enum SCPreferences {
     private static let enabledKey = "scEnabled"
     private static let desktopColumnsKey = "desktopSwitcherColumns"
+    private static let desktopPreviewStyleKey = "desktopSwitcherPreviewStyle"
     private static let desktopPreviewSizeKey = "desktopSwitcherPreviewSize"
     private static let desktopWindowFrameKey = "desktopSwitcherWindowFrame"
     private static let spaceCustomNamesKey = "spaceCustomNames"
@@ -213,6 +232,15 @@ enum SCPreferences {
 
     static func saveDesktopPreviewSize(_ size: DesktopPreviewSize) {
         UserDefaults.standard.set(size.rawValue, forKey: desktopPreviewSizeKey)
+    }
+
+    static func loadDesktopPreviewStyle() -> DesktopPreviewStyle {
+        let stored = UserDefaults.standard.integer(forKey: desktopPreviewStyleKey)
+        return DesktopPreviewStyle(rawValue: stored) ?? .default
+    }
+
+    static func saveDesktopPreviewStyle(_ style: DesktopPreviewStyle) {
+        UserDefaults.standard.set(style.rawValue, forKey: desktopPreviewStyleKey)
     }
 
     static func loadMenuBarDesktopIndicatorStyle() -> MenuBarDesktopIndicatorStyle {

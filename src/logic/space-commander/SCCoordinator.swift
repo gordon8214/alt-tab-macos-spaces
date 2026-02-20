@@ -43,6 +43,7 @@ class SCCoordinator {
     var hasShownConfigurationWarning = false
 
     var hotKeyManager: SCHotKeyManager?
+    var imageCaptureManager: SCDesktopImageCaptureManager?
 
     func start() {
         spacesCustomNames = SCPreferences.loadSpaceCustomNames()
@@ -61,6 +62,7 @@ class SCCoordinator {
         statusBarController?.onPreferences = {
             App.app.showSettingsWindow()
         }
+        imageCaptureManager = SCDesktopImageCaptureManager()
         hotKeyManager = SCHotKeyManager()
         hotKeyManager?.onDesktopSwitcherToggle = { [weak self] in
             self?.toggleDesktopSwitcher()
@@ -79,6 +81,8 @@ class SCCoordinator {
         hotKeyManager?.unregisterAll()
         hotKeyManager = nil
         stopPolling()
+        imageCaptureManager?.invalidateAll()
+        imageCaptureManager = nil
         desktopSwitcherController?.dismiss()
         desktopSwitcherController = nil
         spatialOverlayController?.cleanup()
@@ -126,6 +130,14 @@ class SCCoordinator {
             SCPreferences.saveFullscreenSpaceCustomOrder(normalizedFullscreenOrder)
         }
         latestSpacesSnapshot = snapshot
+        if SCPreferences.loadDesktopPreviewStyle() == .images {
+            let isPanelVisible = desktopSwitcherController?.panel?.isVisible == true
+            let allSpaceIDs = Set(snapshot.spaces.map(\.spaceId) + snapshot.fullscreenSpaces.map(\.spaceId))
+            imageCaptureManager?.pruneStaleEntries(currentSpaceIDs: allSpaceIDs)
+            if !isPanelVisible {
+                imageCaptureManager?.captureVisibleSpaces()
+            }
+        }
         statusBarController?.setSpacesSnapshot(snapshot)
         statusBarController?.setActiveDesktopIndex(snapshot.currentSpaceIndex)
         desktopSwitcherController?.refreshIfVisibleCoalesced()
@@ -249,6 +261,9 @@ extension SCCoordinator {
         }
         controller.onReorderFullscreenDesktops = { [weak self] spaceID, targetIndex in
             self?.reorderFullscreenDesktop(spaceID: spaceID, targetIndex: targetIndex)
+        }
+        controller.imageProvider = { [weak self] spaceID in
+            self?.imageCaptureManager?.cachedImage(for: spaceID)
         }
     }
 

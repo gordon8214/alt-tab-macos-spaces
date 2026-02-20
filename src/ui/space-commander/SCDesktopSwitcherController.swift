@@ -52,10 +52,56 @@ final class SCDesktopCardView: NSView {
 
 final class SCDesktopLayoutPreviewView: NSView {
     var snapshot: StageLayoutSnapshot?
+    var desktopImage: CGImage?
 
     override var isFlipped: Bool { true }
 
     override func draw(_ dirtyRect: NSRect) {
+        if let desktopImage {
+            drawImagePreview(desktopImage)
+            return
+        }
+        drawShapesPreview()
+    }
+
+    private func drawImagePreview(_ image: CGImage) {
+        guard let context = NSGraphicsContext.current?.cgContext else { return }
+        let cornerRadius: CGFloat = 9
+        let clipPath = CGPath(roundedRect: bounds, cornerWidth: cornerRadius, cornerHeight: cornerRadius, transform: nil)
+        context.addPath(clipPath)
+        context.clip()
+
+        let imageWidth = CGFloat(image.width)
+        let imageHeight = CGFloat(image.height)
+        let imageAspect = imageWidth / imageHeight
+        let boundsAspect = bounds.width / bounds.height
+
+        let drawRect: CGRect
+        if imageAspect > boundsAspect {
+            let scaledHeight = bounds.height
+            let scaledWidth = scaledHeight * imageAspect
+            let xOffset = (bounds.width - scaledWidth) / 2
+            drawRect = CGRect(x: xOffset, y: 0, width: scaledWidth, height: scaledHeight)
+        } else {
+            let scaledWidth = bounds.width
+            let scaledHeight = scaledWidth / imageAspect
+            let yOffset = (bounds.height - scaledHeight) / 2
+            drawRect = CGRect(x: 0, y: yOffset, width: scaledWidth, height: scaledHeight)
+        }
+
+        context.saveGState()
+        context.translateBy(x: 0, y: bounds.height)
+        context.scaleBy(x: 1, y: -1)
+        context.draw(image, in: drawRect)
+        context.restoreGState()
+
+        let borderPath = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: cornerRadius, yRadius: cornerRadius)
+        NSColor.gridColor.withAlphaComponent(0.45).setStroke()
+        borderPath.lineWidth = 1
+        borderPath.stroke()
+    }
+
+    private func drawShapesPreview() {
         let gradient = NSGradient(colors: [
             NSColor.windowBackgroundColor.withAlphaComponent(0.95),
             NSColor.controlBackgroundColor.withAlphaComponent(0.85)
@@ -161,6 +207,15 @@ class SCDesktopSwitcherController: NSObject {
             }
         }
 
+        var spaceId: CGSSpaceID {
+            switch self {
+            case .regular(let desktop):
+                return desktop.spaceId
+            case .fullscreen(let desktop):
+                return desktop.spaceId
+            }
+        }
+
         var stableID: String {
             switch self {
             case .regular(let desktop):
@@ -241,6 +296,7 @@ class SCDesktopSwitcherController: NSObject {
     }
 
     var snapshotProvider: (() -> SpacesSnapshot?)?
+    var imageProvider: ((CGSSpaceID) -> CGImage?)?
     var onActivateDesktop: ((Int) -> Void)?
     var onActivateFullscreenDesktop: ((UInt64, String) -> Void)?
     var onRenameDesktop: ((Int, String?) -> Void)?

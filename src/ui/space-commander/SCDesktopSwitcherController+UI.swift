@@ -6,6 +6,7 @@ extension SCDesktopSwitcherController {
         let panelFrame: NSRect
         let contentSize: CGSize
         let previewSize: DesktopPreviewSize
+        let previewStyle: DesktopPreviewStyle
         let cardSize: CGSize
         let horizontalPadding: CGFloat
         let verticalPadding: CGFloat
@@ -156,6 +157,7 @@ extension SCDesktopSwitcherController {
             panelFrame: panelFrame,
             contentSize: contentSize,
             previewSize: previewSize,
+            previewStyle: SCPreferences.loadDesktopPreviewStyle(),
             cardSize: cardSize,
             horizontalPadding: spacing.horizontalPadding,
             verticalPadding: spacing.verticalPadding,
@@ -351,7 +353,7 @@ extension SCDesktopSwitcherController {
                 origins: origins,
                 slots: &slots
             )
-            let card = makeDesktopCard(for: desktop, frame: frame, previewSize: layout.previewSize)
+            let card = makeDesktopCard(for: desktop, frame: frame, previewSize: layout.previewSize, previewStyle: layout.previewStyle)
             docView.addSubview(card)
             cardViewsByDesktopID[desktop.stableID] = card
             baseCardFrames.append(frame)
