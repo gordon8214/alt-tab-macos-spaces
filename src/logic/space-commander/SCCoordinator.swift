@@ -466,9 +466,11 @@ extension SCCoordinator {
 
 // MARK: - Hotkey Manager
 
+private let scHotKeySignature: OSType = "spcm".utf8.reduce(0) { ($0 << 8) + OSType($1) }
+
 @MainActor
 class SCHotKeyManager {
-    private static let signature: OSType = "spcm".utf8.reduce(0) { ($0 << 8) + OSType($1) }
+    private static let signature: OSType = scHotKeySignature
     private static let shortcutEventTarget = GetEventDispatcherTarget()
 
     private var hotKeyRefs: [UInt32: EventHotKeyRef] = [:]
@@ -539,6 +541,7 @@ class SCHotKeyManager {
             guard let event, let userData else { return OSStatus(eventNotHandledErr) }
             var id = EventHotKeyID()
             GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil, MemoryLayout<EventHotKeyID>.size, nil, &id)
+            guard id.signature == scHotKeySignature else { return OSStatus(eventNotHandledErr) }
             let manager = Unmanaged<SCHotKeyManager>.fromOpaque(userData).takeUnretainedValue()
             DispatchQueue.main.async {
                 manager.handleHotKeyPress(id: id.id)

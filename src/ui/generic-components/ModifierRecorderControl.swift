@@ -96,7 +96,9 @@ class ModifierRecorderControl: NSView {
                 onModifiersChanged?(pending)
             }
         } else {
-            pendingModifiers = current
+            if pendingModifiers == nil || current.rawValue.nonzeroBitCount > pendingModifiers!.rawValue.nonzeroBitCount {
+                pendingModifiers = current
+            }
             needsDisplay = true
         }
     }

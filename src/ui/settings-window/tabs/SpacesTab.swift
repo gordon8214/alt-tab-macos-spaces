@@ -2,8 +2,10 @@ import Cocoa
 
 class SpacesTab {
     private static var enabledToggle: NSButton?
-    private static var desktopSwitcherRecorder: SCShortcutRecorderControl?
-    private static var firstEmptySpaceRecorder: SCShortcutRecorderControl?
+    private static var desktopSwitcherModifierRecorder: ModifierRecorderControl?
+    private static var desktopSwitcherKeyRecorder: SCKeyRecorderControl?
+    private static var firstEmptySpaceModifierRecorder: ModifierRecorderControl?
+    private static var firstEmptySpaceKeyRecorder: SCKeyRecorderControl?
     private static var columnsTextField: NSTextField?
     private static var columnsStepper: NSStepper?
     private static var previewSizeDropdown: NSPopUpButton?
@@ -19,31 +21,37 @@ class SpacesTab {
             leftTitle: NSLocalizedString("Enable Space Commander", comment: ""),
             rightViews: [enabledCheckbox]
         )
-        let desktopSwitcherRec = SCShortcutRecorderControl(keyCombo: SCPreferences.loadDesktopSwitcherShortcut())
-        desktopSwitcherRec.onShortcutChanged = { combo in
-            SCPreferences.saveDesktopSwitcherShortcut(combo)
-            DispatchQueue.main.async {
-                SCCoordinator.shared?.hotKeyManager?.unregisterAll()
-                SCCoordinator.shared?.hotKeyManager?.registerAll()
-            }
-        }
-        desktopSwitcherRecorder = desktopSwitcherRec
+        let desktopSwitcherCombo = SCPreferences.loadDesktopSwitcherShortcut()
+        let dsMods = ModifierRecorderControl()
+        dsMods.modifiers = desktopSwitcherCombo.modifiers
+        dsMods.onModifiersChanged = { _ in saveDesktopSwitcherFromControls() }
+        desktopSwitcherModifierRecorder = dsMods
+        let dsKey = SCKeyRecorderControl()
+        dsKey.keyCode = desktopSwitcherCombo.keyCode
+        dsKey.onKeyChanged = { _ in saveDesktopSwitcherFromControls() }
+        desktopSwitcherKeyRecorder = dsKey
+        let dsStack = NSStackView(views: [dsMods, dsKey])
+        dsStack.orientation = .horizontal
+        dsStack.spacing = 8
         let desktopSwitcherRow = TableGroupView.Row(
             leftTitle: NSLocalizedString("Desktop switcher", comment: ""),
-            rightViews: [desktopSwitcherRec]
+            rightViews: [dsStack]
         )
-        let firstEmptyRec = SCShortcutRecorderControl(keyCombo: SCPreferences.loadFirstEmptySpaceShortcut())
-        firstEmptyRec.onShortcutChanged = { combo in
-            SCPreferences.saveFirstEmptySpaceShortcut(combo)
-            DispatchQueue.main.async {
-                SCCoordinator.shared?.hotKeyManager?.unregisterAll()
-                SCCoordinator.shared?.hotKeyManager?.registerAll()
-            }
-        }
-        firstEmptySpaceRecorder = firstEmptyRec
+        let firstEmptyCombo = SCPreferences.loadFirstEmptySpaceShortcut()
+        let feMods = ModifierRecorderControl()
+        feMods.modifiers = firstEmptyCombo.modifiers
+        feMods.onModifiersChanged = { _ in saveFirstEmptySpaceFromControls() }
+        firstEmptySpaceModifierRecorder = feMods
+        let feKey = SCKeyRecorderControl()
+        feKey.keyCode = firstEmptyCombo.keyCode
+        feKey.onKeyChanged = { _ in saveFirstEmptySpaceFromControls() }
+        firstEmptySpaceKeyRecorder = feKey
+        let feStack = NSStackView(views: [feMods, feKey])
+        feStack.orientation = .horizontal
+        feStack.spacing = 8
         let firstEmptyRow = TableGroupView.Row(
             leftTitle: NSLocalizedString("First empty space", comment: ""),
-            rightViews: [firstEmptyRec]
+            rightViews: [feStack]
         )
         let columnsField = NSTextField()
         columnsField.integerValue = SCPreferences.loadDesktopColumns()
@@ -104,10 +112,7 @@ class SpacesTab {
         recorder.modifiers = SCPreferences.loadSpatialModifiers()
         recorder.onModifiersChanged = { newModifiers in
             SCPreferences.saveSpatialModifiers(newModifiers)
-            DispatchQueue.main.async {
-                SCCoordinator.shared?.hotKeyManager?.unregisterAll()
-                SCCoordinator.shared?.hotKeyManager?.registerAll()
-            }
+            reRegisterHotKeys()
         }
         spatialModifierRecorder = recorder
         let spatialModifiers = TableGroupView.Row(
@@ -128,6 +133,27 @@ class SpacesTab {
         table.addNewTable()
         table.addRow(spatialModifiers)
         return TableGroupSetView(originalViews: [table], bottomPadding: 0)
+    }
+
+    private static func saveDesktopSwitcherFromControls() {
+        guard let modifiers = desktopSwitcherModifierRecorder?.modifiers,
+              let keyCode = desktopSwitcherKeyRecorder?.keyCode else { return }
+        SCPreferences.saveDesktopSwitcherShortcut(SCKeyCombo(keyCode: keyCode, modifiers: modifiers))
+        reRegisterHotKeys()
+    }
+
+    private static func saveFirstEmptySpaceFromControls() {
+        guard let modifiers = firstEmptySpaceModifierRecorder?.modifiers,
+              let keyCode = firstEmptySpaceKeyRecorder?.keyCode else { return }
+        SCPreferences.saveFirstEmptySpaceShortcut(SCKeyCombo(keyCode: keyCode, modifiers: modifiers))
+        reRegisterHotKeys()
+    }
+
+    private static func reRegisterHotKeys() {
+        DispatchQueue.main.async {
+            SCCoordinator.shared?.hotKeyManager?.unregisterAll()
+            SCCoordinator.shared?.hotKeyManager?.registerAll()
+        }
     }
 
     @objc private static func enabledToggleChanged(_ sender: NSButton) {

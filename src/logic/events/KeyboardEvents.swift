@@ -1,8 +1,10 @@
 import Cocoa
 import ShortcutRecorder
 
+private let keyboardEventsSignature: OSType = "altt".utf16.reduce(0) { ($0 << 8) + OSType($1) }
+
 class KeyboardEvents {
-    private static let signature = "altt".utf16.reduce(0) { ($0 << 8) + OSType($1) }
+    private static let signature = keyboardEventsSignature
     // GetEventMonitorTarget/GetApplicationEventTarget also work, but require Accessibility Permission
     private static let shortcutEventTarget = GetEventDispatcherTarget()
     private static var eventHotKeyRefs = [String: EventHotKeyRef?]()
@@ -113,6 +115,7 @@ class KeyboardEvents {
             InstallEventHandler(shortcutEventTarget, { (_: EventHandlerCallRef?, event: EventRef?, _: UnsafeMutableRawPointer?) -> OSStatus in
                 var id = EventHotKeyID()
                 GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil, MemoryLayout<EventHotKeyID>.size, nil, &id)
+                guard id.signature == keyboardEventsSignature else { return OSStatus(eventNotHandledErr) }
                 handleKeyboardEvent(Int(id.id), .down, nil, nil, false)
                 return noErr
             }, eventTypes.count, &eventTypes, nil, &hotKeyPressedEventHandler)
@@ -122,6 +125,7 @@ class KeyboardEvents {
             InstallEventHandler(shortcutEventTarget, { (_: EventHandlerCallRef?, event: EventRef?, _: UnsafeMutableRawPointer?) -> OSStatus in
                 var id = EventHotKeyID()
                 GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil, MemoryLayout<EventHotKeyID>.size, nil, &id)
+                guard id.signature == keyboardEventsSignature else { return OSStatus(eventNotHandledErr) }
                 handleKeyboardEvent(Int(id.id), .up, nil, nil, false)
                 return noErr
             }, eventTypes.count, &eventTypes, nil, &hotKeyReleasedEventHandler)

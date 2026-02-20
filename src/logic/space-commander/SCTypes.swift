@@ -161,25 +161,6 @@ struct SCKeyCombo: Codable, Sendable, Equatable {
         keyCodeMap[keyCode] ?? "Key\(keyCode)"
     }
 
-    /// Key equivalent string for ShortcutRecorder (e.g. "⌃⌥⌘d")
-    var shortcutKeyEquivalent: String {
-        var result = ""
-        if modifiers.contains(.control) { result += "⌃" }
-        if modifiers.contains(.option) { result += "⌥" }
-        if modifiers.contains(.shift) { result += "⇧" }
-        if modifiers.contains(.command) { result += "⌘" }
-        result += SCKeyCombo.keyCodeToString(keyCode).lowercased()
-        return result
-    }
-}
-
-extension SCKeyCombo {
-    init?(shortcutKeyCode: UInt16, modifierFlags: NSEvent.ModifierFlags) {
-        let carbonMods = SCCarbonModifiers(cocoaFlags: modifierFlags)
-        guard !carbonMods.isEmpty else { return nil }
-        self.keyCode = UInt32(shortcutKeyCode)
-        self.modifiers = carbonMods
-    }
 }
 
 enum SCPreferences {
