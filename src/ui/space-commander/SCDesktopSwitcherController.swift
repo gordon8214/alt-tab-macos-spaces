@@ -35,11 +35,12 @@ final class SCDesktopCardView: NSView {
         layer?.borderWidth = isSelected ? Appearance.highlightBorderWidth : 1
         layer?.borderColor = isSelected
             ? Appearance.highlightFocusedBorderColor.cgColor
-            : NSColor.gridColor.withAlphaComponent(0.5).cgColor
-        layer?.shadowOpacity = isLifted ? 0.33 : (isSelected ? 0.25 : 0)
-        layer?.shadowRadius = isLifted ? 11 : (isSelected ? 7 : 0)
-        layer?.shadowOffset = CGSize(width: 0, height: 2)
-        layer?.shadowColor = NSColor.black.cgColor
+            : NSColor.gridColor.cgColor
+        let shadow = NSShadow()
+        shadow.shadowOffset = NSSize(width: 0, height: -2)
+        shadow.shadowColor = NSColor.black.withAlphaComponent(isLifted ? 0.33 : (isSelected ? 0.25 : 0.15))
+        shadow.shadowBlurRadius = isLifted ? 11 : (isSelected ? 7 : 4)
+        self.shadow = shadow
         layer?.zPosition = isLifted ? 10 : 0
     }
 
