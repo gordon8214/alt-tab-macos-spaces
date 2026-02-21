@@ -144,7 +144,7 @@ enum SCSpacesSnapshotBuilder {
             )
 
             let bundleIDs = uniqueBundleIDs(in: windowsInSpace)
-            let subtitle = windowCountSubtitle(windowsInSpace.count)
+            let subtitle = keyboardShortcutSubtitle(normalizedSpaceIndex)
             let layoutSnapshot = buildLayoutSnapshot(from: windowsInSpace)
 
             regularItems.append(SpaceSnapshotItem(
@@ -177,7 +177,7 @@ enum SCSpacesSnapshotBuilder {
 
             let bundleIDs = uniqueBundleIDs(in: windowsInSpace)
             let title = fullscreenTitle(bundleIDs: bundleIDs, appNamesByBundleID: appNamesByBundleID, fallbackRawSpaceIndex: rawSpaceIndex)
-            let subtitle = windowCountSubtitle(windowsInSpace.count)
+            let subtitle = ""
             let layoutSnapshot = buildLayoutSnapshot(from: windowsInSpace)
 
             fullscreenItems.append(FullscreenSpaceSnapshotItem(
@@ -314,14 +314,9 @@ enum SCSpacesSnapshotBuilder {
         return "\(first), \(names[1]) - \(names.count - 2) others"
     }
 
-    private static func windowCountSubtitle(_ count: Int) -> String {
-        if count == 0 {
-            return NSLocalizedString("No windows", comment: "")
-        } else if count == 1 {
-            return NSLocalizedString("1 window", comment: "")
-        } else {
-            return String(format: NSLocalizedString("%d windows", comment: ""), count)
-        }
+    private static func keyboardShortcutSubtitle(_ spaceIndex: Int) -> String {
+        guard spaceIndex >= 1, spaceIndex <= 9 else { return "" }
+        return "⌃\(spaceIndex)"
     }
 
     private static func buildLayoutSnapshot(from windows: [Window]) -> StageLayoutSnapshot? {
