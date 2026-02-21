@@ -319,7 +319,7 @@ extension SCDesktopSwitcherController {
         panel.setAccessibilityLabel(NSLocalizedString("Desktop Switcher", comment: ""))
 
         let effectView = NSVisualEffectView(frame: NSRect(origin: .zero, size: layout.panelFrame.size))
-        effectView.material = .dark
+        effectView.material = .popover
         effectView.state = .active
         effectView.wantsLayer = true
         effectView.layer?.cornerRadius = panelCornerRadius
