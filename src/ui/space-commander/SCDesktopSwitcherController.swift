@@ -29,10 +29,12 @@ final class SCDesktopCardView: NSView {
 
     override func updateLayer() {
         layer?.cornerRadius = 12
-        layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.6).cgColor
-        layer?.borderWidth = isSelected ? 3 : 1
+        layer?.backgroundColor = isSelected
+            ? Appearance.highlightFocusedBackgroundColor.cgColor
+            : NSColor.windowBackgroundColor.withAlphaComponent(0.6).cgColor
+        layer?.borderWidth = isSelected ? Appearance.highlightBorderWidth : 1
         layer?.borderColor = isSelected
-            ? NSColor.selectedControlColor.cgColor
+            ? Appearance.highlightFocusedBorderColor.cgColor
             : NSColor.gridColor.withAlphaComponent(0.5).cgColor
         layer?.shadowOpacity = isLifted ? 0.33 : (isSelected ? 0.25 : 0)
         layer?.shadowRadius = isLifted ? 11 : (isSelected ? 7 : 0)
