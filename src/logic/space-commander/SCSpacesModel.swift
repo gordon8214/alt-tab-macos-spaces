@@ -218,10 +218,12 @@ enum SCSpacesSnapshotBuilder {
         for window in Windows.list {
             guard !window.isWindowlessApp else { continue }
             let targetSpaces: [Int]
-            if window.spaceIndexes.isEmpty {
-                targetSpaces = (window.isOnAllSpaces && normalizedCurrentSpaceIndex > 0)
+            if window.isOnAllSpaces {
+                targetSpaces = normalizedCurrentSpaceIndex > 0
                     ? [normalizedCurrentSpaceIndex]
                     : []
+            } else if window.spaceIndexes.isEmpty {
+                targetSpaces = []
             } else {
                 var seen = Set<Int>()
                 targetSpaces = window.spaceIndexes.compactMap { rawSpaceIndex in
@@ -234,11 +236,6 @@ enum SCSpacesSnapshotBuilder {
             }
             for spaceIndex in targetSpaces {
                 buckets[spaceIndex, default: []].append(window)
-            }
-            if window.isOnAllSpaces,
-               normalizedCurrentSpaceIndex > 0,
-               !targetSpaces.contains(normalizedCurrentSpaceIndex) {
-                buckets[normalizedCurrentSpaceIndex, default: []].append(window)
             }
         }
         return buckets

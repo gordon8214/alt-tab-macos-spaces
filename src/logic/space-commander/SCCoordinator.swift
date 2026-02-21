@@ -186,7 +186,7 @@ class SCCoordinator {
             return
         }
         desktopSwitcherController?.dismiss()
-        guard let firstEmpty = snapshot.spaces.first(where: { $0.bundleIDs.isEmpty && !$0.isCurrent }) else {
+        guard let firstEmpty = Self.firstEmptyRegularDesktop(in: snapshot) else {
             NSSound.beep()
             return
         }
@@ -378,7 +378,7 @@ extension SCCoordinator {
                 self.verifyDesktopSwitch(spaceIndex: spaceIndex, requestID: requestID, attempt: attempt + 1, fallbackUsed: fallbackUsed)
                 return
             }
-            Logger.warning { "Desktop switch verification failed after \(attempt) attempts spaceIndex=\(spaceIndex)" }
+            Logger.warning { "Desktop switch verification failed after \(attempt) attempts targetSpaceIndex=\(spaceIndex) currentSpaceIndex=\(snapshot.currentSpaceIndex)" }
             if !fallbackUsed {
                 if self.activateRegularDesktopViaShortcut(spaceIndex: spaceIndex) {
                     self.verifyDesktopSwitch(spaceIndex: spaceIndex, requestID: requestID, attempt: 1, fallbackUsed: true)
@@ -386,6 +386,7 @@ extension SCCoordinator {
                 }
             }
             if fallbackUsed {
+                NSSound.beep()
                 self.pendingActivationID = nil
                 self.refreshSpacesSnapshot()
                 return
@@ -405,6 +406,14 @@ extension SCCoordinator {
             return nil
         }
         return nonFullscreen[normalizedIndex - 1].1
+    }
+
+    nonisolated static func firstEmptyRegularDesktop(in snapshot: SpacesSnapshot) -> SpaceSnapshotItem? {
+        if let currentScreenUUID = snapshot.currentSpace?.screenUUID,
+           let firstOnCurrent = snapshot.spaces.first(where: { $0.bundleIDs.isEmpty && !$0.isCurrent && $0.screenUUID == currentScreenUUID }) {
+            return firstOnCurrent
+        }
+        return snapshot.spaces.first(where: { $0.bundleIDs.isEmpty && !$0.isCurrent })
     }
 }
 
@@ -505,10 +514,13 @@ class SCHotKeyManager {
 
     private var hotKeyRefs: [UInt32: EventHotKeyRef] = [:]
     private var pressedEventHandler: EventHandlerRef?
+    nonisolated(unsafe) private var firstEmptyHotKeyIsPressed = false
 
-    var onDesktopSwitcherToggle: (() -> Void)?
-    var onFirstEmptySpace: (() -> Void)?
-    var onSpatialNavigation: ((SpatialDirection) -> Void)?
+    // nonisolated(unsafe) so the Carbon callback can invoke them synchronously
+    // (Carbon delivers hotkey events on the main thread, so access is safe)
+    nonisolated(unsafe) var onDesktopSwitcherToggle: (() -> Void)?
+    nonisolated(unsafe) var onFirstEmptySpace: (() -> Void)?
+    nonisolated(unsafe) var onSpatialNavigation: ((SpatialDirection) -> Void)?
 
     private enum HotKeyID: UInt32 {
         case desktopSwitcher = 1
@@ -545,6 +557,7 @@ class SCHotKeyManager {
             UnregisterEventHotKey(ref)
         }
         hotKeyRefs.removeAll()
+        firstEmptyHotKeyIsPressed = false
         if let handler = pressedEventHandler {
             RemoveEventHandler(handler)
             pressedEventHandler = nil
@@ -565,7 +578,10 @@ class SCHotKeyManager {
 
     private func installHandler() {
         guard pressedEventHandler == nil else { return }
-        var eventTypes = [EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: OSType(kEventHotKeyPressed))]
+        var eventTypes = [
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: OSType(kEventHotKeyPressed)),
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: OSType(kEventHotKeyReleased))
+        ]
         let handlerRef = Unmanaged.passRetained(self).toOpaque()
         InstallEventHandler(Self.shortcutEventTarget, { (_: EventHandlerCallRef?, event: EventRef?, userData: UnsafeMutableRawPointer?) -> OSStatus in
             guard let event, let userData else { return OSStatus(eventNotHandledErr) }
@@ -573,29 +589,49 @@ class SCHotKeyManager {
             GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil, MemoryLayout<EventHotKeyID>.size, nil, &id)
             guard id.signature == scHotKeySignature else { return OSStatus(eventNotHandledErr) }
             let manager = Unmanaged<SCHotKeyManager>.fromOpaque(userData).takeUnretainedValue()
-            DispatchQueue.main.async {
-                manager.handleHotKeyPress(id: id.id)
-            }
+            manager.handleHotKeyEvent(id: id.id, eventKind: GetEventKind(event))
             return noErr
         }, eventTypes.count, &eventTypes, handlerRef, &pressedEventHandler)
     }
 
-    private func handleHotKeyPress(id: UInt32) {
+    // nonisolated because this is called directly from the Carbon event handler
+    nonisolated private func handleHotKeyEvent(id: UInt32, eventKind: UInt32) {
         guard let hotKeyID = HotKeyID(rawValue: id) else { return }
+        let isPressed = eventKind == UInt32(kEventHotKeyPressed)
+        let isReleased = eventKind == UInt32(kEventHotKeyReleased)
         switch hotKeyID {
         case .desktopSwitcher:
-            onDesktopSwitcherToggle?()
+            if isPressed { onDesktopSwitcherToggle?() }
         case .firstEmptySpace:
-            onFirstEmptySpace?()
+            if isPressed {
+                firstEmptyHotKeyIsPressed = true
+                return
+            }
+            guard isReleased, firstEmptyHotKeyIsPressed else { return }
+            firstEmptyHotKeyIsPressed = false
+            triggerFirstEmptySpaceWhenModifierKeysReleased()
         case .spatialLeft:
-            onSpatialNavigation?(.left)
+            if isPressed { onSpatialNavigation?(.left) }
         case .spatialRight:
-            onSpatialNavigation?(.right)
+            if isPressed { onSpatialNavigation?(.right) }
         case .spatialUp:
-            onSpatialNavigation?(.upward)
+            if isPressed { onSpatialNavigation?(.upward) }
         case .spatialDown:
-            onSpatialNavigation?(.down)
+            if isPressed { onSpatialNavigation?(.down) }
         }
+    }
+
+    nonisolated private func triggerFirstEmptySpaceWhenModifierKeysReleased(retryCount: Int = 0) {
+        let blockingMask = UInt32(cmdKey | optionKey | shiftKey)
+        var retries = retryCount
+        var blocking = GetCurrentKeyModifiers() & blockingMask
+        while blocking != 0, retries < 25 {
+            usleep(20_000)
+            retries += 1
+            blocking = GetCurrentKeyModifiers() & blockingMask
+        }
+        Logger.info { "First empty space hotkey released; triggering desktop activation retries=\(retries) blockingModifiers=\(blocking)" }
+        onFirstEmptySpace?()
     }
 
     private func carbonModifierFlags(from modifiers: SCCarbonModifiers) -> UInt32 {

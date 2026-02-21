@@ -6,7 +6,7 @@ import Foundation
 enum SCSpaceActivator {
     static func activateSpace(index: Int) -> Bool {
         guard let keyCode = keyCode(forSpaceIndex: index),
-              let source = CGEventSource(stateID: .combinedSessionState),
+              let source = CGEventSource(stateID: .hidSystemState) ?? CGEventSource(stateID: .combinedSessionState),
               let keyDown = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true),
               let keyUp = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false) else {
             return false
