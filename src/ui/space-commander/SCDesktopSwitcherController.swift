@@ -78,15 +78,15 @@ final class SCDesktopLayoutPreviewView: NSView {
 
         let drawRect: CGRect
         if imageAspect > boundsAspect {
-            let scaledHeight = bounds.height
-            let scaledWidth = scaledHeight * imageAspect
-            let xOffset = (bounds.width - scaledWidth) / 2
-            drawRect = CGRect(x: xOffset, y: 0, width: scaledWidth, height: scaledHeight)
-        } else {
             let scaledWidth = bounds.width
             let scaledHeight = scaledWidth / imageAspect
             let yOffset = (bounds.height - scaledHeight) / 2
             drawRect = CGRect(x: 0, y: yOffset, width: scaledWidth, height: scaledHeight)
+        } else {
+            let scaledHeight = bounds.height
+            let scaledWidth = scaledHeight * imageAspect
+            let xOffset = (bounds.width - scaledWidth) / 2
+            drawRect = CGRect(x: xOffset, y: 0, width: scaledWidth, height: scaledHeight)
         }
 
         context.saveGState()
