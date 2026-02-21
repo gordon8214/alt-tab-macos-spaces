@@ -111,6 +111,10 @@ class SCStatusBarController {
             hasCurrentFullscreenSpace: spacesSnapshot?.currentFullscreenSpace != nil
         )
 
+        if applyGridIndicatorIfNeeded(button: button, iconState: iconState) {
+            return
+        }
+
         if applyDesktopIndicatorIfNeeded(button: button, iconState: iconState) {
             return
         }
@@ -149,7 +153,62 @@ class SCStatusBarController {
                 activeDesktopIndex: activeDesktopIndex,
                 customTitle: customTitle
             )
+        case .grid, .gridWithNumber:
+            return false
         }
+        return true
+    }
+
+    private func applyGridIndicatorIfNeeded(
+        button: NSStatusBarButton,
+        iconState: SCStatusBarIconState
+    ) -> Bool {
+        let indicatorStyle = SCPreferences.loadMenuBarDesktopIndicatorStyle()
+        guard indicatorStyle == .grid || indicatorStyle == .gridWithNumber else {
+            return false
+        }
+        guard let snapshot = spacesSnapshot else {
+            return false
+        }
+
+        let layout = Self.dotGridLayout(
+            snapshot: snapshot,
+            configuredRegularColumns: SCPreferences.loadDesktopColumns()
+        )
+        guard let gridImage = Self.dotGridImage(layout: layout) else {
+            return false
+        }
+
+        button.image = gridImage
+        button.imagePosition = .imageOnly
+        button.toolTip = iconState.accessibilityDescription
+        button.setAccessibilityLabel(iconState.accessibilityDescription)
+        statusItem.length = NSStatusItem.variableLength
+
+        if indicatorStyle == .gridWithNumber {
+            let customTitle = Self.customDesktopTitle(
+                snapshot: spacesSnapshot,
+                activeDesktopIndex: activeDesktopIndex,
+                showCustomDesktopTitle: SCPreferences.loadShowCustomDesktopTitleInMenuBar()
+            )
+            let suffixText = Self.gridIndicatorSuffixText(
+                activeDesktopIndex: activeDesktopIndex,
+                customTitle: customTitle
+            )
+            if !suffixText.isEmpty {
+                let font = NSFont.menuBarFont(ofSize: 0)
+                let truncatedSuffix = Self.truncatedText(
+                    suffixText,
+                    maxWidth: Self.boxedIndicatorSuffixMaxWidth,
+                    font: font
+                )
+                if !truncatedSuffix.isEmpty {
+                    button.title = truncatedSuffix
+                    button.imagePosition = .imageLeading
+                }
+            }
+        }
+
         return true
     }
 
@@ -405,6 +464,9 @@ extension SCStatusBarController {
                 return "\(activeDesktopIndex)"
             }
             return "\(activeDesktopIndex) \u{00B7} \(customTitle)"
+
+        case .grid, .gridWithNumber:
+            return ""
         }
     }
 
@@ -479,5 +541,146 @@ extension SCStatusBarController {
 
     private nonisolated static func defaultDesktopTitle(spaceIndex: Int) -> String {
         String(format: NSLocalizedString("Desktop %d", comment: ""), spaceIndex)
+    }
+
+    // MARK: - Dot Grid
+
+    struct DotGridLayout: Equatable {
+        let fullscreenCount: Int
+        let regularCount: Int
+        let regularColumns: Int
+        let currentDotIndex: Int? // nil when no space reports as current
+    }
+
+    nonisolated static func dotGridLayout(
+        snapshot: SpacesSnapshot,
+        configuredRegularColumns: Int
+    ) -> DotGridLayout {
+        let fullscreenCount = snapshot.fullscreenSpaces.count
+        let regularCount = snapshot.spaces.count
+
+        var currentDotIndex: Int? = nil
+        for (offset, fs) in snapshot.fullscreenSpaces.enumerated() {
+            if fs.isCurrent {
+                currentDotIndex = offset
+                break
+            }
+        }
+        if currentDotIndex == nil {
+            for (offset, space) in snapshot.spaces.enumerated() {
+                if space.isCurrent {
+                    currentDotIndex = fullscreenCount + offset
+                    break
+                }
+            }
+        }
+
+        return DotGridLayout(
+            fullscreenCount: fullscreenCount,
+            regularCount: regularCount,
+            regularColumns: configuredRegularColumns,
+            currentDotIndex: currentDotIndex
+        )
+    }
+
+    nonisolated static func dotGridImage(layout: DotGridLayout) -> NSImage? {
+        let totalDots = layout.fullscreenCount + layout.regularCount
+        guard totalDots > 0 else { return nil }
+
+        var dotDiameter: CGFloat = 3
+        var centerSpacing: CGFloat = 5 // center-to-center distance between dots
+        var sectionGap: CGFloat = 3
+        let maxHeight: CGFloat = 18
+
+        // Calculate fullscreen column dimensions
+        let fsRows = layout.fullscreenCount
+        let hasFullscreen = fsRows > 0
+        let hasRegular = layout.regularCount > 0
+
+        // Calculate regular grid dimensions
+        let regCols = max(layout.regularColumns, 1)
+        let regRows = hasRegular ? Int(ceil(Double(layout.regularCount) / Double(regCols))) : 0
+
+        let maxRows = max(fsRows, regRows)
+
+        // Dynamic scaling: if natural height exceeds maxHeight, scale down
+        let naturalHeight = dotDiameter + CGFloat(max(maxRows - 1, 0)) * centerSpacing
+        if naturalHeight > maxHeight, maxRows > 0 {
+            let scale = maxHeight / naturalHeight
+            dotDiameter *= scale
+            centerSpacing *= scale
+            sectionGap *= scale
+        }
+
+        // Compute total image size
+        let fsColumnWidth: CGFloat = hasFullscreen ? dotDiameter : 0
+        let gapWidth: CGFloat = (hasFullscreen && hasRegular) ? sectionGap : 0
+        let regGridWidth: CGFloat = hasRegular
+            ? dotDiameter + CGFloat(regCols - 1) * centerSpacing
+            : 0
+        let totalWidth = fsColumnWidth + gapWidth + regGridWidth
+
+        let fsColumnHeight: CGFloat = hasFullscreen
+            ? dotDiameter + CGFloat(fsRows - 1) * centerSpacing
+            : 0
+        let regGridHeight: CGFloat = hasRegular
+            ? dotDiameter + CGFloat(regRows - 1) * centerSpacing
+            : 0
+        let totalHeight = max(fsColumnHeight, regGridHeight)
+
+        guard totalWidth > 0, totalHeight > 0 else { return nil }
+
+        let image = NSImage(size: NSSize(width: totalWidth, height: totalHeight))
+        image.lockFocus()
+
+        var dotIndex = 0
+
+        // Draw fullscreen dots (single column, vertically centered)
+        if hasFullscreen {
+            let fsOffsetY = (totalHeight - fsColumnHeight) / 2
+            for row in 0..<fsRows {
+                let x: CGFloat = 0
+                let y = fsOffsetY + CGFloat(fsRows - 1 - row) * centerSpacing
+                let alpha: CGFloat = (dotIndex == layout.currentDotIndex) ? 1.0 : 0.35
+                NSColor.black.withAlphaComponent(alpha).setFill()
+                let dotRect = NSRect(x: x, y: y, width: dotDiameter, height: dotDiameter)
+                NSBezierPath(ovalIn: dotRect).fill()
+                dotIndex += 1
+            }
+        }
+
+        // Draw regular grid (vertically centered)
+        if hasRegular {
+            let regOriginX = fsColumnWidth + gapWidth
+            let regOffsetY = (totalHeight - regGridHeight) / 2
+            for i in 0..<layout.regularCount {
+                let col = i % regCols
+                let row = i / regCols
+                let x = regOriginX + CGFloat(col) * centerSpacing
+                let y = regOffsetY + CGFloat(regRows - 1 - row) * centerSpacing
+                let alpha: CGFloat = (dotIndex == layout.currentDotIndex) ? 1.0 : 0.35
+                NSColor.black.withAlphaComponent(alpha).setFill()
+                let dotRect = NSRect(x: x, y: y, width: dotDiameter, height: dotDiameter)
+                NSBezierPath(ovalIn: dotRect).fill()
+                dotIndex += 1
+            }
+        }
+
+        image.unlockFocus()
+        image.isTemplate = true
+        return image
+    }
+
+    nonisolated static func gridIndicatorSuffixText(
+        activeDesktopIndex: Int?,
+        customTitle: String?
+    ) -> String {
+        guard let activeDesktopIndex else {
+            return ""
+        }
+        guard let customTitle else {
+            return " \(activeDesktopIndex)"
+        }
+        return " \(activeDesktopIndex) \u{00B7} \(customTitle)"
     }
 }

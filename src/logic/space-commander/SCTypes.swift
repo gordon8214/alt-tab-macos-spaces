@@ -65,6 +65,8 @@ enum DesktopPreviewSize: Int, CaseIterable, Codable, Sendable {
 enum MenuBarDesktopIndicatorStyle: Int, CaseIterable, Codable, Sendable {
     case boxedNumber
     case largeNumber
+    case grid
+    case gridWithNumber
 
     var displayName: String {
         switch self {
@@ -72,6 +74,10 @@ enum MenuBarDesktopIndicatorStyle: Int, CaseIterable, Codable, Sendable {
             return NSLocalizedString("Number in Box", comment: "")
         case .largeNumber:
             return NSLocalizedString("Large Number", comment: "")
+        case .grid:
+            return NSLocalizedString("Dot Grid", comment: "")
+        case .gridWithNumber:
+            return NSLocalizedString("Dot Grid + Number", comment: "")
         }
     }
 
