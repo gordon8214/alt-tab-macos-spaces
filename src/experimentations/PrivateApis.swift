@@ -33,11 +33,6 @@ func CGSMoveWorkspaceWindowList(_ cid: CGSConnectionID, _ windowList: CFArray, _
 @_silgen_name("CGSMoveWindowsToManagedSpace")
 func CGSMoveWindowsToManagedSpace(_ cid: CGSConnectionID, _ windows: NSArray, _ space: CGSSpaceID) -> Void
 
-// returns true if the current screen is animating
-// useful to detect Spaces transitions, windows going fullscreen, etc
-@_silgen_name("SLSManagedDisplayIsAnimating")
-func SLSManagedDisplayIsAnimating(_ cid: CGSConnectionID, _ displayUuid: ScreenUuid) -> Bool
-
 @_silgen_name("CGSGetSymbolicHotKeyValue")
 func CGSGetSymbolicHotKeyValue(_ hotKey: Int, _ options: UnsafeMutablePointer<UInt32>, _ keyCode: UnsafeMutablePointer<UInt32>, _ modifiers: UnsafeMutablePointer<UInt32>) -> CGError
 

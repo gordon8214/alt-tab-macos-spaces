@@ -124,6 +124,10 @@ func CGSCopyWindowsWithOptionsAndTags(_ cid: CGSConnectionID, _ owner: Int, _ sp
 @_silgen_name("CGSManagedDisplayGetCurrentSpace")
 func CGSManagedDisplayGetCurrentSpace(_ cid: CGSConnectionID, _ displayUuid: ScreenUuid) -> CGSSpaceID
 
+/// returns true if the display is currently animating (e.g. space transition, fullscreen animation)
+@_silgen_name("SLSManagedDisplayIsAnimating")
+func SLSManagedDisplayIsAnimating(_ cid: CGSConnectionID, _ displayUuid: ScreenUuid) -> Bool
+
 /// sets the current space on the provided display UUID
 /// * macOS 10.10+
 @_silgen_name("CGSManagedDisplaySetCurrentSpace") @discardableResult

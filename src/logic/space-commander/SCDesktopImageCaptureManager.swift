@@ -21,7 +21,7 @@ class SCDesktopImageCaptureManager {
         lastCaptureTime = now
         captureInFlight = true
 
-        var captureTargets = [(spaceID: CGSSpaceID, displayID: CGDirectDisplayID, bounds: CGRect)]()
+        var captureTargets = [(spaceID: CGSSpaceID, displayID: CGDirectDisplayID, bounds: CGRect, screenUUID: String)]()
         for (screenUUID, spaceIDs) in Spaces.screenSpacesMap {
             guard let screen = Screens.all[screenUUID],
                   let displayID = screen.number() else {
@@ -30,7 +30,7 @@ class SCDesktopImageCaptureManager {
             guard let visibleSpaceID = spaceIDs.first(where: { Spaces.visibleSpaces.contains($0) }) else {
                 continue
             }
-            captureTargets.append((visibleSpaceID, displayID, CGDisplayBounds(displayID)))
+            captureTargets.append((visibleSpaceID, displayID, CGDisplayBounds(displayID), screenUUID as String))
         }
 
         guard !captureTargets.isEmpty else {
@@ -43,6 +43,11 @@ class SCDesktopImageCaptureManager {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             var results = [(CGSSpaceID, CGImage)]()
             for target in captureTargets {
+                // Pre-capture guard: skip if display is mid-space-transition
+                if SLSManagedDisplayIsAnimating(CGS_CONNECTION, target.screenUUID as CFString) {
+                    Logger.debug { "Skipping capture for space \(target.spaceID): display is animating" }
+                    continue
+                }
                 let cgImage: CGImage?
                 if excludedIDs.isEmpty {
                     cgImage = CGWindowListCreateImage(
@@ -62,6 +67,12 @@ class SCDesktopImageCaptureManager {
                 }
                 guard let cgImage else {
                     Logger.debug { "CGWindowListCreateImage returned nil for displayID=\(target.displayID)" }
+                    continue
+                }
+                // Post-capture guard: verify space didn't change during capture
+                let currentSpace = CGSManagedDisplayGetCurrentSpace(CGS_CONNECTION, target.screenUUID as CFString)
+                if currentSpace != target.spaceID {
+                    Logger.debug { "Discarding capture for space \(target.spaceID): space changed to \(currentSpace)" }
                     continue
                 }
                 let scaled = Self.downscale(cgImage, maxWidth: maxW)
