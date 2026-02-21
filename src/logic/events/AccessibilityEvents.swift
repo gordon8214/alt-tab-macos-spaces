@@ -120,6 +120,10 @@ class AccessibilityEvents {
         // if the window is shown by alt-tab, we mark it as focused for this app
         // this avoids issues with dialogs, quicklook, etc (see scenarios from #1044 and #2003)
         window.application.focusedWindow = window
+        if let cgWindowId = window.cgWindowId {
+            let spaceId = Spaces.currentSpaceId
+            DispatchQueue.main.async { SCCoordinator.shared?.recordFocusedWindow(cgWindowId, spaceId: spaceId) }
+        }
         App.app.checkIfShortcutsShouldBeDisabled(window, nil)
         if let windows = Windows.updateLastFocusOrder(window) {
             App.app.refreshOpenUiAfterExternalEvent(windows)

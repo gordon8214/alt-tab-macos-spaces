@@ -28,6 +28,7 @@ class SCCoordinator {
 
     var hotKeyManager: SCHotKeyManager?
     var imageCaptureManager: SCDesktopImageCaptureManager?
+    var lastFocusedWindowBySpace: [CGSSpaceID: CGWindowID] = [:]
 
     func start() {
         spacesCustomNames = SCPreferences.loadSpaceCustomNames()
@@ -70,6 +71,34 @@ class SCCoordinator {
         desktopSwitcherController = nil
         statusBarController = nil
         latestSpacesSnapshot = nil
+        lastFocusedWindowBySpace.removeAll()
+    }
+
+    func recordFocusedWindow(_ cgWindowId: CGWindowID, spaceId: CGSSpaceID) {
+        guard let rawSpaceIndex = Spaces.idsAndIndexes.first(where: { $0.0 == spaceId })?.1,
+              let window = Windows.list.first(where: { $0.cgWindowId == cgWindowId }),
+              window.spaceIndexes.contains(rawSpaceIndex) else {
+            return
+        }
+        lastFocusedWindowBySpace[spaceId] = cgWindowId
+    }
+
+    private func lastFocusedWindow(forSpaceId spaceId: CGSSpaceID, rawSpaceIndex: Int) -> Window? {
+        guard let savedWindowId = lastFocusedWindowBySpace[spaceId] else { return nil }
+        let match = Windows.list.first { window in
+            guard window.cgWindowId == savedWindowId,
+                  !window.isWindowlessApp,
+                  !window.isMinimized,
+                  !window.isHidden,
+                  window.spaceIndexes.contains(rawSpaceIndex) else {
+                return false
+            }
+            return true
+        }
+        if match == nil {
+            lastFocusedWindowBySpace.removeValue(forKey: spaceId)
+        }
+        return match
     }
 
     func startPolling() {
@@ -91,7 +120,17 @@ class SCCoordinator {
     }
 
     func handleSpaceChange() {
+        recordCurrentFocusedWindowForDepartingSpace()
         refreshSpacesSnapshot()
+    }
+
+    private func recordCurrentFocusedWindowForDepartingSpace() {
+        guard let frontmostPid = Applications.frontmostPid,
+              let frontmostApp = Applications.findOrCreate(frontmostPid, false),
+              let focusedWindow = frontmostApp.focusedWindow,
+              let cgWindowId = focusedWindow.cgWindowId else { return }
+        let departingSpaceId = Spaces.currentSpaceId
+        lastFocusedWindowBySpace[departingSpaceId] = cgWindowId
     }
 
     func refreshSpacesSnapshot() {
@@ -287,6 +326,12 @@ extension SCCoordinator {
               let targetSpace = snapshot.spaces.first(where: { $0.spaceIndex == spaceIndex }) else {
             return false
         }
+        let rawSpaceIndex = spaceIndexForNormalized(spaceIndex) ?? spaceIndex
+        if let lastFocused = lastFocusedWindow(forSpaceId: targetSpace.spaceId, rawSpaceIndex: rawSpaceIndex) {
+            lastFocused.focus()
+            Logger.info { "Regular desktop activation via last-focused window spaceIndex=\(spaceIndex) wid=\(lastFocused.cgWindowId ?? 0)" }
+            return true
+        }
         guard let topBundleID = targetSpace.bundleIDs.first else {
             return false
         }
@@ -297,8 +342,7 @@ extension SCCoordinator {
                   window.application.bundleIdentifier == topBundleID else {
                 return false
             }
-            let rawSpaceIndex = spaceIndexForNormalized(spaceIndex)
-            return window.spaceIndexes.contains(rawSpaceIndex ?? spaceIndex)
+            return window.spaceIndexes.contains(rawSpaceIndex)
         }
         guard let targetWindow else { return false }
         targetWindow.focus()
@@ -371,6 +415,11 @@ extension SCCoordinator {
     func activateFullscreenDesktopViaWindowFocus(spaceID: UInt64) -> Bool {
         guard let rawSpaceIndex = Spaces.idsAndIndexes.first(where: { $0.0 == spaceID })?.1 else {
             return false
+        }
+        if let lastFocused = lastFocusedWindow(forSpaceId: spaceID, rawSpaceIndex: rawSpaceIndex) {
+            lastFocused.focus()
+            Logger.info { "Fullscreen desktop activation via last-focused window spaceID=\(spaceID) wid=\(lastFocused.cgWindowId ?? 0)" }
+            return true
         }
         let targetWindow = Windows.list.first { window in
             guard !window.isWindowlessApp,
