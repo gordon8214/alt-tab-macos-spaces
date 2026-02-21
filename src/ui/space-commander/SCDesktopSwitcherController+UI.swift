@@ -8,6 +8,7 @@ extension SCDesktopSwitcherController {
         let previewSize: DesktopPreviewSize
         let previewStyle: DesktopPreviewStyle
         let cardSize: CGSize
+        let previewHeight: CGFloat
         let horizontalPadding: CGFloat
         let verticalPadding: CGFloat
         let horizontalSpacing: CGFloat
@@ -70,7 +71,7 @@ extension SCDesktopSwitcherController {
         guard let screen = preferredScreen() else { return }
 
         let previewSize = SCPreferences.loadDesktopPreviewSize()
-        let layout = panelLayout(for: screen, previewSize: previewSize)
+        let layout = panelLayout(for: screen, previewSize: previewSize, screenAspectRatio: screen.ratio())
         guard let panelSetup = preparePanel(layout: layout) else { return }
 
         let docView = SCDesktopDocumentView(
@@ -125,8 +126,9 @@ extension SCDesktopSwitcherController {
         displayOrder = Array(entries.indices)
     }
 
-    func panelLayout(for screen: NSScreen, previewSize: DesktopPreviewSize) -> PanelLayout {
-        let cardSize = previewSize.cardSize
+    func panelLayout(for screen: NSScreen, previewSize: DesktopPreviewSize, screenAspectRatio: CGFloat) -> PanelLayout {
+        let cardSize = previewSize.cardSize(for: screenAspectRatio)
+        let previewHeight = previewSize.previewHeight(for: screenAspectRatio)
         let spacing = panelSpacing()
         let regularColumnCount = Self.effectiveColumnCount(
             configuredColumns: SCPreferences.loadDesktopColumns(),
@@ -159,6 +161,7 @@ extension SCDesktopSwitcherController {
             previewSize: previewSize,
             previewStyle: SCPreferences.loadDesktopPreviewStyle(),
             cardSize: cardSize,
+            previewHeight: previewHeight,
             horizontalPadding: spacing.horizontalPadding,
             verticalPadding: spacing.verticalPadding,
             horizontalSpacing: spacing.horizontalSpacing,
@@ -353,7 +356,7 @@ extension SCDesktopSwitcherController {
                 origins: origins,
                 slots: &slots
             )
-            let card = makeDesktopCard(for: desktop, frame: frame, previewSize: layout.previewSize, previewStyle: layout.previewStyle)
+            let card = makeDesktopCard(for: desktop, frame: frame, previewHeight: layout.previewHeight, previewSize: layout.previewSize, previewStyle: layout.previewStyle)
             docView.addSubview(card)
             cardViewsByDesktopID[desktop.stableID] = card
             baseCardFrames.append(frame)

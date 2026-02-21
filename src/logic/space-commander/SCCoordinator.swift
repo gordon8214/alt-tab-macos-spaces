@@ -195,11 +195,17 @@ class SCCoordinator {
 
     func handleSpatialNavigation(_ direction: SpatialDirection) {
         desktopSwitcherController?.dismiss()
+        let mouseLocation = NSEvent.mouseLocation
+        let screen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) })
+            ?? NSScreen.main
+            ?? NSScreen.screens.first
+        let screenAspectRatio = screen?.ratio() ?? (16.0 / 9.0)
         let action = Self.spatialDesktopAttemptAction(
             snapshot: latestSpacesSnapshot,
             direction: direction,
             configuredRegularColumns: SCPreferences.loadDesktopColumns(),
-            previewSize: SCPreferences.loadDesktopPreviewSize()
+            previewSize: SCPreferences.loadDesktopPreviewSize(),
+            screenAspectRatio: screenAspectRatio
         )
         switch action {
         case .beep:
@@ -453,7 +459,8 @@ extension SCCoordinator {
         snapshot: SpacesSnapshot?,
         direction: SpatialDirection,
         configuredRegularColumns: Int,
-        previewSize: DesktopPreviewSize
+        previewSize: DesktopPreviewSize,
+        screenAspectRatio: CGFloat
     ) -> SCSpatialDesktopAttemptAction {
         guard let snapshot else {
             return .beep
@@ -462,7 +469,8 @@ extension SCCoordinator {
             snapshot: snapshot,
             direction: direction,
             configuredRegularColumns: configuredRegularColumns,
-            previewSize: previewSize
+            previewSize: previewSize,
+            screenAspectRatio: screenAspectRatio
         ) else {
             return .beep
         }

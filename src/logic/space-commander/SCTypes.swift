@@ -35,26 +35,25 @@ enum DesktopPreviewSize: Int, CaseIterable, Codable, Sendable {
         }
     }
 
-    var cardSize: CGSize {
+    static let previewInset: CGFloat = 12
+    // 12pt top inset + 10pt gap + 20pt title + 8pt bottom
+    static let cardNonPreviewHeight: CGFloat = 50
+
+    private var cardWidth: CGFloat {
         switch self {
-        case .small:
-            return CGSize(width: 220, height: 156)
-        case .medium:
-            return CGSize(width: 280, height: 182)
-        case .large:
-            return CGSize(width: 340, height: 208)
+        case .small: return 220
+        case .medium: return 280
+        case .large: return 340
         }
     }
 
-    var previewHeight: CGFloat {
-        switch self {
-        case .small:
-            return 108
-        case .medium:
-            return 132
-        case .large:
-            return 158
-        }
+    func previewHeight(for screenAspectRatio: CGFloat) -> CGFloat {
+        let safeRatio = max(screenAspectRatio, 0.5)
+        return (cardWidth - Self.previewInset * 2) / safeRatio
+    }
+
+    func cardSize(for screenAspectRatio: CGFloat) -> CGSize {
+        CGSize(width: cardWidth, height: previewHeight(for: screenAspectRatio) + Self.cardNonPreviewHeight)
     }
 
     static var `default`: DesktopPreviewSize {

@@ -5,17 +5,19 @@ extension SCDesktopSwitcherController {
         snapshot: SpacesSnapshot,
         direction: SpatialDirection,
         configuredRegularColumns: Int,
-        previewSize: DesktopPreviewSize
+        previewSize: DesktopPreviewSize,
+        screenAspectRatio: CGFloat
     ) -> SpatialMoveResolution? {
         let entries = spatialEntries(from: snapshot)
         guard !entries.isEmpty else {
             return nil
         }
 
+        let cardSize = previewSize.cardSize(for: screenAspectRatio)
         let frames = spatialFrames(
             entries: entries,
             configuredRegularColumns: configuredRegularColumns,
-            previewSize: previewSize
+            cardSize: cardSize
         )
         guard frames.count == entries.count else {
             return nil
@@ -55,9 +57,8 @@ extension SCDesktopSwitcherController {
     private nonisolated static func spatialFrames(
         entries: [DesktopEntry],
         configuredRegularColumns: Int,
-        previewSize: DesktopPreviewSize
+        cardSize: CGSize
     ) -> [CGRect] {
-        let cardSize = previewSize.cardSize
         let spacing = panelSpacingConstants()
 
         let fullscreenCount = entries.filter { $0.kind == .fullscreen }.count
