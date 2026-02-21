@@ -587,8 +587,8 @@ extension SCStatusBarController {
         let totalDots = layout.fullscreenCount + layout.regularCount
         guard totalDots > 0 else { return nil }
 
-        var dotDiameter: CGFloat = 3
-        var centerSpacing: CGFloat = 5 // center-to-center distance between dots
+        var dotDiameter: CGFloat = 4
+        var centerSpacing: CGFloat = 6 // center-to-center distance between dots
         var sectionGap: CGFloat = 3
         let maxHeight: CGFloat = 18
 
@@ -641,7 +641,7 @@ extension SCStatusBarController {
             for row in 0..<fsRows {
                 let x: CGFloat = 0
                 let y = fsOffsetY + CGFloat(fsRows - 1 - row) * centerSpacing
-                let alpha: CGFloat = (dotIndex == layout.currentDotIndex) ? 1.0 : 0.35
+                let alpha: CGFloat = (dotIndex == layout.currentDotIndex) ? 1.0 : 0.45
                 NSColor.black.withAlphaComponent(alpha).setFill()
                 let dotRect = NSRect(x: x, y: y, width: dotDiameter, height: dotDiameter)
                 NSBezierPath(ovalIn: dotRect).fill()
@@ -658,7 +658,7 @@ extension SCStatusBarController {
                 let row = i / regCols
                 let x = regOriginX + CGFloat(col) * centerSpacing
                 let y = regOffsetY + CGFloat(regRows - 1 - row) * centerSpacing
-                let alpha: CGFloat = (dotIndex == layout.currentDotIndex) ? 1.0 : 0.35
+                let alpha: CGFloat = (dotIndex == layout.currentDotIndex) ? 1.0 : 0.45
                 NSColor.black.withAlphaComponent(alpha).setFill()
                 let dotRect = NSRect(x: x, y: y, width: dotDiameter, height: dotDiameter)
                 NSBezierPath(ovalIn: dotRect).fill()
