@@ -38,7 +38,7 @@ final class SCDesktopCardView: NSView {
             : NSColor.gridColor.cgColor
         let shadow = NSShadow()
         shadow.shadowOffset = NSSize(width: 0, height: -2)
-        shadow.shadowColor = NSColor.black.withAlphaComponent(isLifted ? 0.33 : (isSelected ? 0.25 : 0.15))
+        shadow.shadowColor = NSColor.black.withAlphaComponent(isLifted ? 0.45 : (isSelected ? 0.35 : 0.25))
         shadow.shadowBlurRadius = isLifted ? 11 : (isSelected ? 7 : 4)
         self.shadow = shadow
         layer?.zPosition = isLifted ? 10 : 0
