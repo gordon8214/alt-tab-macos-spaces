@@ -38,11 +38,11 @@ enum DesktopPreviewSize: Int, CaseIterable, Codable, Sendable {
     var cardSize: CGSize {
         switch self {
         case .small:
-            return CGSize(width: 220, height: 170)
+            return CGSize(width: 220, height: 156)
         case .medium:
-            return CGSize(width: 280, height: 206)
+            return CGSize(width: 280, height: 182)
         case .large:
-            return CGSize(width: 340, height: 246)
+            return CGSize(width: 340, height: 208)
         }
     }
 
