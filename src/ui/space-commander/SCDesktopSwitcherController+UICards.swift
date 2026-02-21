@@ -58,20 +58,34 @@ extension SCDesktopSwitcherController {
         previewFrame: CGRect
     ) {
         let titleY = previewFrame.maxY + 10
-        let titleLabel = NSTextField(labelWithString: desktop.title)
-        titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        titleLabel.textColor = .labelColor
-        titleLabel.lineBreakMode = .byTruncatingTail
-        titleLabel.frame = CGRect(x: 14, y: titleY, width: frame.width - 28, height: 20)
-        card.addSubview(titleLabel)
-        titleLabelsByDesktopID[desktop.stableID] = titleLabel
+        let horizontalPadding: CGFloat = 14
+        let gap: CGFloat = 6
+        let availableWidth = frame.width - horizontalPadding * 2
 
+        // Create subtitle first to measure its intrinsic width
         let subtitleLabel = NSTextField(labelWithString: desktop.subtitle)
         subtitleLabel.font = .systemFont(ofSize: 11, weight: .regular)
         subtitleLabel.textColor = .secondaryLabelColor
         subtitleLabel.lineBreakMode = .byTruncatingTail
-        subtitleLabel.frame = CGRect(x: 14, y: titleY + 22, width: frame.width - 28, height: 16)
+        subtitleLabel.sizeToFit()
+        let subtitleWidth = subtitleLabel.frame.width
+        subtitleLabel.frame = CGRect(
+            x: frame.width - horizontalPadding - subtitleWidth,
+            y: titleY,
+            width: subtitleWidth,
+            height: 20
+        )
         card.addSubview(subtitleLabel)
+
+        // Title takes remaining space, left-aligned
+        let titleWidth = availableWidth - subtitleWidth - gap
+        let titleLabel = NSTextField(labelWithString: desktop.title)
+        titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
+        titleLabel.textColor = .labelColor
+        titleLabel.lineBreakMode = .byTruncatingTail
+        titleLabel.frame = CGRect(x: horizontalPadding, y: titleY, width: titleWidth, height: 20)
+        card.addSubview(titleLabel)
+        titleLabelsByDesktopID[desktop.stableID] = titleLabel
     }
 
     func updateSelection() {
