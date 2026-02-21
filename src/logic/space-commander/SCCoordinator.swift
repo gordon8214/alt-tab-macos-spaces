@@ -95,6 +95,7 @@ class SCCoordinator {
     }
 
     func refreshSpacesSnapshot() {
+        Spaces.refresh()
         let snapshot = SCSpacesSnapshotBuilder.build(
             customNames: spacesCustomNames,
             preferredOrder: spacesCustomOrder,
