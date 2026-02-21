@@ -67,7 +67,7 @@ extension SCDesktopSwitcherController {
         // Create subtitle first to measure its intrinsic width
         let subtitleLabel = NSTextField(labelWithString: desktop.subtitle)
         subtitleLabel.font = .systemFont(ofSize: 11, weight: .regular)
-        subtitleLabel.textColor = .secondaryLabelColor
+        subtitleLabel.textColor = .labelColor
         subtitleLabel.lineBreakMode = .byTruncatingTail
         subtitleLabel.sizeToFit()
         let subtitleWidth = subtitleLabel.frame.width
