@@ -166,8 +166,6 @@ enum SCSpacesSnapshotBuilder {
             availableSpaceIDs: fullscreenSpaces.map { $0.0 }
         )
 
-        let appNamesByBundleID = appNamesByBundleID()
-
         var fullscreenItems: [FullscreenSpaceSnapshotItem] = []
         for spaceId in mergedFullscreenOrder {
             guard let entry = fullscreenSpaces.first(where: { $0.0 == spaceId }) else { continue }
@@ -176,7 +174,7 @@ enum SCSpacesSnapshotBuilder {
             let windowsInSpace = windowsByRawSpace[rawSpaceIndex] ?? []
 
             let bundleIDs = uniqueBundleIDs(in: windowsInSpace)
-            let title = fullscreenTitle(bundleIDs: bundleIDs, appNamesByBundleID: appNamesByBundleID, fallbackRawSpaceIndex: rawSpaceIndex)
+            let title = fullscreenTitle(windows: windowsInSpace, fallbackRawSpaceIndex: rawSpaceIndex)
             let subtitle = ""
             let layoutSnapshot = buildLayoutSnapshot(from: windowsInSpace)
 
@@ -283,35 +281,40 @@ enum SCSpacesSnapshotBuilder {
         return result
     }
 
-    private static func appNamesByBundleID() -> [String: String] {
-        var names: [String: String] = [:]
-        for window in Windows.list {
-            guard let bundleID = window.application.bundleIdentifier,
-                  !bundleID.isEmpty,
-                  bundleID != App.bundleIdentifier,
-                  names[bundleID] == nil else {
-                continue
-            }
-            let appName = window.application.localizedName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            if !appName.isEmpty {
-                names[bundleID] = appName
-            }
-        }
-        return names
-    }
-
     private static func fullscreenTitle(
-        bundleIDs: [String],
-        appNamesByBundleID: [String: String],
+        windows: [Window],
         fallbackRawSpaceIndex: Int
     ) -> String {
-        let names = bundleIDs.compactMap { appNamesByBundleID[$0] }
-        guard let first = names.first else {
+        let labels = fullscreenLabels(windows: windows)
+        guard let first = labels.first else {
             return String(format: NSLocalizedString("Fullscreen %d", comment: ""), fallbackRawSpaceIndex)
         }
-        if names.count == 1 { return first }
-        if names.count == 2 { return "\(first), \(names[1])" }
-        return "\(first), \(names[1]) - \(names.count - 2) others"
+        if labels.count == 1 { return first }
+        if labels.count == 2 { return "\(first), \(labels[1])" }
+        return "\(first), \(labels[1]) - \(labels.count - 2) others"
+    }
+
+    private static func fullscreenLabels(windows: [Window]) -> [String] {
+        var titles = [String]()
+        var seenTitles = Set<String>()
+        var fallbackAppNames = [String]()
+        var seenAppNames = Set<String>()
+        for window in windows {
+            guard let bundleID = window.application.bundleIdentifier,
+                  !bundleID.isEmpty,
+                  bundleID != App.bundleIdentifier else {
+                continue
+            }
+            let title = window.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !title.isEmpty, seenTitles.insert(title).inserted {
+                titles.append(title)
+            }
+            let appName = window.application.localizedName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !appName.isEmpty, seenAppNames.insert(appName).inserted {
+                fallbackAppNames.append(appName)
+            }
+        }
+        return titles.isEmpty ? fallbackAppNames : titles
     }
 
     private static func keyboardShortcutSubtitle(_ spaceIndex: Int) -> String {
