@@ -15,7 +15,9 @@ enum SCStatusBarSpacesMenuEntry: Equatable {
         title: String,
         activationTarget: SCStatusBarActivationTarget?,
         isEnabled: Bool,
-        isCurrent: Bool
+        isCurrent: Bool,
+        keyEquivalent: String,
+        keyEquivalentModifierMask: NSEvent.ModifierFlags
     )
     case separator
 }
@@ -74,15 +76,16 @@ class SCStatusBarController {
             case .separator:
                 menu.addItem(.separator())
 
-            case .item(let title, let activationTarget, let isEnabled, let isCurrent):
+            case .item(let title, let activationTarget, let isEnabled, let isCurrent, let keyEquivalent, let keyEquivalentModifierMask):
                 let item = NSMenuItem(
                     title: title,
                     action: (isEnabled && activationTarget != nil) ? #selector(activateSpaceClicked(_:)) : nil,
-                    keyEquivalent: ""
+                    keyEquivalent: keyEquivalent
                 )
                 item.target = self
                 item.isEnabled = isEnabled
                 item.state = isCurrent ? .on : .off
+                item.keyEquivalentModifierMask = keyEquivalentModifierMask
                 item.representedObject = activationTarget
                 menu.addItem(item)
             }
@@ -330,20 +333,22 @@ class SCStatusBarController {
 // MARK: - Modeling
 
 extension SCStatusBarController {
-    nonisolated static func spaceMenuTitle(for spaceIndex: Int, name: String, subtitle: String) -> String {
-        let base = "\(spaceIndex): \(name)"
-        return appendShortcutSubtitle(baseTitle: base, subtitle: subtitle)
+    nonisolated static func spaceMenuTitle(for spaceIndex: Int, name: String) -> String {
+        "\(spaceIndex): \(name)"
     }
 
-    nonisolated static func fullscreenMenuTitle(name: String, subtitle: String) -> String {
-        let base = String(format: NSLocalizedString("Fullscreen: %@", comment: ""), name)
-        return appendShortcutSubtitle(baseTitle: base, subtitle: subtitle)
+    nonisolated static func fullscreenMenuTitle(name: String) -> String {
+        String(format: NSLocalizedString("Fullscreen: %@", comment: ""), name)
     }
 
-    nonisolated static func appendShortcutSubtitle(baseTitle: String, subtitle: String) -> String {
-        let trimmedSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedSubtitle.isEmpty else { return baseTitle }
-        return "\(baseTitle) (\(trimmedSubtitle))"
+    nonisolated static func menuShortcut(
+        forSpaceIndex spaceIndex: Int,
+        modifiers: SCCarbonModifiers
+    ) -> (keyEquivalent: String, modifierMask: NSEvent.ModifierFlags) {
+        guard (1...9).contains(spaceIndex) else {
+            return ("", [])
+        }
+        return ("\(spaceIndex)", modifiers.cocoaFlags)
     }
 
     nonisolated static func spacesMenuEntries(snapshot: SpacesSnapshot?) -> [SCStatusBarSpacesMenuEntry] {
@@ -353,23 +358,32 @@ extension SCStatusBarController {
                     title: NSLocalizedString("No spaces available", comment: ""),
                     activationTarget: nil,
                     isEnabled: false,
-                    isCurrent: false
+                    isCurrent: false,
+                    keyEquivalent: "",
+                    keyEquivalentModifierMask: []
                 )
             ]
         }
 
         var entries: [SCStatusBarSpacesMenuEntry] = []
+        let fullscreenShortcutModifiers = SCPreferences.loadFullscreenShortcutModifiers()
 
         if !snapshot.fullscreenSpaces.isEmpty {
-            entries.append(contentsOf: snapshot.fullscreenSpaces.map { fullscreenSpace in
-                .item(
-                    title: fullscreenMenuTitle(name: fullscreenSpace.title, subtitle: fullscreenSpace.subtitle),
+            entries.append(contentsOf: snapshot.fullscreenSpaces.enumerated().map { offset, fullscreenSpace in
+                let shortcut = menuShortcut(
+                    forSpaceIndex: offset + 1,
+                    modifiers: fullscreenShortcutModifiers
+                )
+                return .item(
+                    title: fullscreenMenuTitle(name: fullscreenSpace.title),
                     activationTarget: .fullscreen(
                         spaceID: fullscreenSpace.spaceId,
                         screenUUID: fullscreenSpace.screenUUID
                     ),
                     isEnabled: true,
-                    isCurrent: fullscreenSpace.isCurrent
+                    isCurrent: fullscreenSpace.isCurrent,
+                    keyEquivalent: shortcut.keyEquivalent,
+                    keyEquivalentModifierMask: shortcut.modifierMask
                 )
             })
         }
@@ -379,11 +393,14 @@ extension SCStatusBarController {
         }
 
         entries.append(contentsOf: snapshot.spaces.map { space in
-            .item(
-                title: spaceMenuTitle(for: space.spaceIndex, name: space.title, subtitle: space.subtitle),
+            let shortcut = menuShortcut(forSpaceIndex: space.spaceIndex, modifiers: .control)
+            return .item(
+                title: spaceMenuTitle(for: space.spaceIndex, name: space.title),
                 activationTarget: .desktop(spaceIndex: space.spaceIndex),
                 isEnabled: true,
-                isCurrent: space.isCurrent
+                isCurrent: space.isCurrent,
+                keyEquivalent: shortcut.keyEquivalent,
+                keyEquivalentModifierMask: shortcut.modifierMask
             )
         })
 
@@ -393,7 +410,9 @@ extension SCStatusBarController {
                     title: NSLocalizedString("No spaces available", comment: ""),
                     activationTarget: nil,
                     isEnabled: false,
-                    isCurrent: false
+                    isCurrent: false,
+                    keyEquivalent: "",
+                    keyEquivalentModifierMask: []
                 )
             ]
         }
