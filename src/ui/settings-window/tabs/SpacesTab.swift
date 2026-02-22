@@ -6,6 +6,7 @@ class SpacesTab {
     private static var desktopSwitcherKeyRecorder: SCKeyRecorderControl?
     private static var firstEmptySpaceModifierRecorder: ModifierRecorderControl?
     private static var firstEmptySpaceKeyRecorder: SCKeyRecorderControl?
+    private static var fullscreenShortcutModifierRecorder: ModifierRecorderControl?
     private static var columnsTextField: NSTextField?
     private static var columnsStepper: NSStepper?
     private static var previewStyleDropdown: NSPopUpButton?
@@ -53,6 +54,14 @@ class SpacesTab {
         let firstEmptyRow = TableGroupView.Row(
             leftTitle: NSLocalizedString("First empty space", comment: ""),
             rightViews: [feStack]
+        )
+        let fsModifiers = ModifierRecorderControl()
+        fsModifiers.modifiers = SCPreferences.loadFullscreenShortcutModifiers()
+        fsModifiers.onModifiersChanged = { _ in saveFullscreenShortcutModifiersFromControls() }
+        fullscreenShortcutModifierRecorder = fsModifiers
+        let fullscreenShortcutModifiersRow = TableGroupView.Row(
+            leftTitle: NSLocalizedString("Fullscreen shortcut modifiers", comment: ""),
+            rightViews: [fsModifiers]
         )
         let columnsField = NSTextField()
         columnsField.integerValue = SCPreferences.loadDesktopColumns()
@@ -137,6 +146,7 @@ class SpacesTab {
         table.addNewTable()
         table.addRow(desktopSwitcherRow)
         table.addRow(firstEmptyRow)
+        table.addRow(fullscreenShortcutModifiersRow)
         table.addNewTable()
         table.addRow(desktopsPerRow)
         table.addRow(previewSize)
@@ -163,10 +173,20 @@ class SpacesTab {
         reRegisterHotKeys()
     }
 
+    private static func saveFullscreenShortcutModifiersFromControls() {
+        guard let modifiers = fullscreenShortcutModifierRecorder?.modifiers else { return }
+        SCPreferences.saveFullscreenShortcutModifiers(modifiers)
+        reRegisterHotKeys()
+        DispatchQueue.main.async { SCCoordinator.shared?.refreshSpacesSnapshot() }
+    }
+
     private static func reRegisterHotKeys() {
         DispatchQueue.main.async {
             SCCoordinator.shared?.hotKeyManager?.unregisterAll()
             SCCoordinator.shared?.hotKeyManager?.registerAll()
+            if let fullscreenCount = SCCoordinator.shared?.latestSpacesSnapshot?.fullscreenSpaces.count {
+                SCCoordinator.shared?.hotKeyManager?.updateFullscreenNumberedShortcuts(count: fullscreenCount)
+            }
         }
     }
 

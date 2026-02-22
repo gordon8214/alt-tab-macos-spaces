@@ -330,12 +330,20 @@ class SCStatusBarController {
 // MARK: - Modeling
 
 extension SCStatusBarController {
-    nonisolated static func spaceMenuTitle(for spaceIndex: Int, name: String) -> String {
-        "\(spaceIndex): \(name)"
+    nonisolated static func spaceMenuTitle(for spaceIndex: Int, name: String, subtitle: String) -> String {
+        let base = "\(spaceIndex): \(name)"
+        return appendShortcutSubtitle(baseTitle: base, subtitle: subtitle)
     }
 
-    nonisolated static func fullscreenMenuTitle(name: String) -> String {
-        String(format: NSLocalizedString("Fullscreen: %@", comment: ""), name)
+    nonisolated static func fullscreenMenuTitle(name: String, subtitle: String) -> String {
+        let base = String(format: NSLocalizedString("Fullscreen: %@", comment: ""), name)
+        return appendShortcutSubtitle(baseTitle: base, subtitle: subtitle)
+    }
+
+    nonisolated static func appendShortcutSubtitle(baseTitle: String, subtitle: String) -> String {
+        let trimmedSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedSubtitle.isEmpty else { return baseTitle }
+        return "\(baseTitle) (\(trimmedSubtitle))"
     }
 
     nonisolated static func spacesMenuEntries(snapshot: SpacesSnapshot?) -> [SCStatusBarSpacesMenuEntry] {
@@ -355,7 +363,7 @@ extension SCStatusBarController {
         if !snapshot.fullscreenSpaces.isEmpty {
             entries.append(contentsOf: snapshot.fullscreenSpaces.map { fullscreenSpace in
                 .item(
-                    title: fullscreenMenuTitle(name: fullscreenSpace.title),
+                    title: fullscreenMenuTitle(name: fullscreenSpace.title, subtitle: fullscreenSpace.subtitle),
                     activationTarget: .fullscreen(
                         spaceID: fullscreenSpace.spaceId,
                         screenUUID: fullscreenSpace.screenUUID
@@ -372,7 +380,7 @@ extension SCStatusBarController {
 
         entries.append(contentsOf: snapshot.spaces.map { space in
             .item(
-                title: spaceMenuTitle(for: space.spaceIndex, name: space.title),
+                title: spaceMenuTitle(for: space.spaceIndex, name: space.title, subtitle: space.subtitle),
                 activationTarget: .desktop(spaceIndex: space.spaceIndex),
                 isEnabled: true,
                 isCurrent: space.isCurrent

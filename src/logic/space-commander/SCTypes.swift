@@ -128,6 +128,15 @@ struct SCCarbonModifiers: OptionSet, Codable, Sendable {
         if contains(.command) { parts.append("Cmd") }
         return parts.joined(separator: "+")
     }
+
+    var symbolString: String {
+        var symbols = ""
+        if contains(.control) { symbols += "⌃" }
+        if contains(.option) { symbols += "⌥" }
+        if contains(.shift) { symbols += "⇧" }
+        if contains(.command) { symbols += "⌘" }
+        return symbols
+    }
 }
 
 struct SCKeyCombo: Codable, Sendable, Equatable {
@@ -202,6 +211,7 @@ enum SCPreferences {
     private static let desktopSwitcherModifiersKey = "scDesktopSwitcherModifiers"
     private static let firstEmptySpaceKeyCodeKey = "scFirstEmptySpaceKeyCode"
     private static let firstEmptySpaceModifiersKey = "scFirstEmptySpaceModifiers"
+    private static let fullscreenShortcutModifiersKey = "scFullscreenShortcutModifiers"
 
     static func loadEnabled() -> Bool {
         // Default to true if key has never been set
@@ -275,6 +285,19 @@ enum SCPreferences {
 
     static func saveSpatialModifiers(_ modifiers: SCCarbonModifiers) {
         UserDefaults.standard.set(Int(modifiers.rawValue), forKey: spatialModifiersKey)
+    }
+
+    static func loadFullscreenShortcutModifiers() -> SCCarbonModifiers {
+        guard let stored = UserDefaults.standard.object(forKey: fullscreenShortcutModifiersKey) as? Int else {
+            return .option
+        }
+        let modifiers = SCCarbonModifiers(rawValue: UInt32(stored))
+        return modifiers.isEmpty ? .option : modifiers
+    }
+
+    static func saveFullscreenShortcutModifiers(_ modifiers: SCCarbonModifiers) {
+        let resolved = modifiers.isEmpty ? SCCarbonModifiers.option : modifiers
+        UserDefaults.standard.set(Int(resolved.rawValue), forKey: fullscreenShortcutModifiersKey)
     }
 
     static func loadDesktopSwitcherShortcut() -> SCKeyCombo {

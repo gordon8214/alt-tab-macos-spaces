@@ -57,6 +57,9 @@ class SCCoordinator {
         hotKeyManager?.onSpatialNavigation = { [weak self] direction in
             self?.handleSpatialNavigation(direction)
         }
+        hotKeyManager?.onFullscreenNumberedShortcut = { [weak self] shortcutIndex in
+            self?.activateFullscreenDesktopForShortcutIndex(shortcutIndex)
+        }
         hotKeyManager?.registerAll()
         startPolling()
     }
@@ -151,6 +154,7 @@ class SCCoordinator {
             SCPreferences.saveFullscreenSpaceCustomOrder(normalizedFullscreenOrder)
         }
         latestSpacesSnapshot = snapshot
+        hotKeyManager?.updateFullscreenNumberedShortcuts(count: snapshot.fullscreenSpaces.count)
         if SCPreferences.loadDesktopPreviewStyle() == .images {
             let allSpaceIDs = Set(snapshot.spaces.map(\.spaceId) + snapshot.fullscreenSpaces.map(\.spaceId))
             imageCaptureManager?.pruneStaleEntries(currentSpaceIDs: allSpaceIDs)
@@ -245,6 +249,14 @@ class SCCoordinator {
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.activationVerificationDelay) { [weak self] in
             self?.refreshSpacesSnapshot()
         }
+    }
+
+    func activateFullscreenDesktopForShortcutIndex(_ shortcutIndex: Int) {
+        guard shortcutIndex >= 1,
+              let fullscreenSpace = latestSpacesSnapshot?.fullscreenSpaces[safe: shortcutIndex - 1] else {
+            return
+        }
+        activateFullscreenDesktop(spaceID: fullscreenSpace.spaceId, screenUUID: fullscreenSpace.screenUUID)
     }
 
     func setCustomSpaceName(_ customName: String?, for spaceIndex: Int) {
@@ -519,9 +531,14 @@ private let scHotKeySignature: OSType = "spcm".utf8.reduce(0) { ($0 << 8) + OSTy
 class SCHotKeyManager {
     private static let signature: OSType = scHotKeySignature
     private static let shortcutEventTarget = GetEventDispatcherTarget()
+    nonisolated private static let maxFullscreenShortcutCount = 9
+    nonisolated private static let fullscreenShortcutHotKeyBaseID: UInt32 = 100
 
     private var hotKeyRefs: [UInt32: EventHotKeyRef] = [:]
     private var pressedEventHandler: EventHandlerRef?
+    private var registeredFullscreenShortcutCount = 0
+    private var registeredFullscreenShortcutModifiers: SCCarbonModifiers = []
+    private var registeredFullscreenShortcutHotKeyIDs = Set<UInt32>()
     nonisolated(unsafe) private var firstEmptyHotKeyIsPressed = false
 
     // nonisolated(unsafe) so the Carbon callback can invoke them synchronously
@@ -529,6 +546,7 @@ class SCHotKeyManager {
     nonisolated(unsafe) var onDesktopSwitcherToggle: (() -> Void)?
     nonisolated(unsafe) var onFirstEmptySpace: (() -> Void)?
     nonisolated(unsafe) var onSpatialNavigation: ((SpatialDirection) -> Void)?
+    nonisolated(unsafe) var onFullscreenNumberedShortcut: ((Int) -> Void)?
 
     private enum HotKeyID: UInt32 {
         case desktopSwitcher = 1
@@ -560,11 +578,44 @@ class SCHotKeyManager {
         registerHotKey(id: .spatialDown, keyCode: UInt32(kVK_DownArrow), modifiers: spatialModifiers)
     }
 
+    func updateFullscreenNumberedShortcuts(count: Int) {
+        let clampedCount = max(0, min(Self.maxFullscreenShortcutCount, count))
+        let modifiers = SCPreferences.loadFullscreenShortcutModifiers()
+        let expectedHotKeyIDs = Self.fullscreenShortcutHotKeyIDs(forCount: clampedCount)
+        if clampedCount == registeredFullscreenShortcutCount,
+           modifiers == registeredFullscreenShortcutModifiers,
+           registeredFullscreenShortcutHotKeyIDs == expectedHotKeyIDs,
+           expectedHotKeyIDs.allSatisfy({ hotKeyRefs[$0] != nil }) {
+            return
+        }
+        unregisterFullscreenNumberedHotKeys()
+        guard clampedCount > 0 else {
+            registeredFullscreenShortcutModifiers = modifiers
+            return
+        }
+        var successfulHotKeyIDs = Set<UInt32>()
+        for shortcutIndex in 1...clampedCount {
+            guard let hotKeyID = registerFullscreenNumberedHotKey(shortcutIndex: shortcutIndex, modifiers: modifiers) else {
+                continue
+            }
+            successfulHotKeyIDs.insert(hotKeyID)
+        }
+        registeredFullscreenShortcutHotKeyIDs = successfulHotKeyIDs
+        registeredFullscreenShortcutCount = clampedCount
+        registeredFullscreenShortcutModifiers = modifiers
+        if successfulHotKeyIDs.count != clampedCount {
+            Logger.warning { "Fullscreen numbered hotkey registration incomplete requested=\(clampedCount) registered=\(successfulHotKeyIDs.count) modifiers=\(modifiers.rawValue)" }
+        }
+    }
+
     func unregisterAll() {
         for (_, ref) in hotKeyRefs {
             UnregisterEventHotKey(ref)
         }
         hotKeyRefs.removeAll()
+        registeredFullscreenShortcutCount = 0
+        registeredFullscreenShortcutModifiers = []
+        registeredFullscreenShortcutHotKeyIDs.removeAll()
         firstEmptyHotKeyIsPressed = false
         if let handler = pressedEventHandler {
             RemoveEventHandler(handler)
@@ -574,14 +625,28 @@ class SCHotKeyManager {
         }
     }
 
-    private func registerHotKey(id: HotKeyID, keyCode: UInt32, modifiers: SCCarbonModifiers) {
-        let hotkeyId = EventHotKeyID(signature: Self.signature, id: id.rawValue)
+    @discardableResult
+    private func registerHotKey(id: HotKeyID, keyCode: UInt32, modifiers: SCCarbonModifiers) -> Bool {
+        registerHotKey(rawID: id.rawValue, keyCode: keyCode, modifiers: modifiers)
+    }
+
+    @discardableResult
+    private func registerHotKey(rawID: UInt32, keyCode: UInt32, modifiers: SCCarbonModifiers) -> Bool {
+        let hotkeyId = EventHotKeyID(signature: Self.signature, id: rawID)
         let carbonMods = carbonModifierFlags(from: modifiers)
         var ref: EventHotKeyRef?
         let status = RegisterEventHotKey(keyCode, carbonMods, hotkeyId, Self.shortcutEventTarget, UInt32(kEventHotKeyNoOptions), &ref)
         if status == noErr, let ref {
-            hotKeyRefs[id.rawValue] = ref
+            hotKeyRefs[rawID] = ref
+            return true
         }
+        Logger.warning { "Space Commander hotkey registration failed id=\(rawID) keyCode=\(keyCode) modifiers=\(modifiers.rawValue) status=\(status)" }
+        return false
+    }
+
+    private func unregisterHotKey(rawID: UInt32) {
+        guard let ref = hotKeyRefs.removeValue(forKey: rawID) else { return }
+        UnregisterEventHotKey(ref)
     }
 
     private func installHandler() {
@@ -604,9 +669,15 @@ class SCHotKeyManager {
 
     // nonisolated because this is called directly from the Carbon event handler
     nonisolated private func handleHotKeyEvent(id: UInt32, eventKind: UInt32) {
-        guard let hotKeyID = HotKeyID(rawValue: id) else { return }
         let isPressed = eventKind == UInt32(kEventHotKeyPressed)
         let isReleased = eventKind == UInt32(kEventHotKeyReleased)
+        if let shortcutIndex = Self.fullscreenShortcutIndex(for: id) {
+            if isPressed {
+                onFullscreenNumberedShortcut?(shortcutIndex)
+            }
+            return
+        }
+        guard let hotKeyID = HotKeyID(rawValue: id) else { return }
         switch hotKeyID {
         case .desktopSwitcher:
             if isPressed { onDesktopSwitcherToggle?() }
@@ -627,6 +698,42 @@ class SCHotKeyManager {
         case .spatialDown:
             if isPressed { onSpatialNavigation?(.down) }
         }
+    }
+
+    private func registerFullscreenNumberedHotKey(shortcutIndex: Int, modifiers: SCCarbonModifiers) -> UInt32? {
+        guard let hotKeyID = Self.fullscreenShortcutHotKeyID(for: shortcutIndex),
+              let keyCode = SCSpaceActivator.keyCode(forSpaceIndex: shortcutIndex) else {
+            return nil
+        }
+        return registerHotKey(rawID: hotKeyID, keyCode: UInt32(keyCode), modifiers: modifiers) ? hotKeyID : nil
+    }
+
+    private func unregisterFullscreenNumberedHotKeys() {
+        guard !registeredFullscreenShortcutHotKeyIDs.isEmpty else {
+            registeredFullscreenShortcutCount = 0
+            return
+        }
+        for hotKeyID in registeredFullscreenShortcutHotKeyIDs {
+            unregisterHotKey(rawID: hotKeyID)
+        }
+        registeredFullscreenShortcutHotKeyIDs.removeAll()
+        registeredFullscreenShortcutCount = 0
+    }
+
+    nonisolated private static func fullscreenShortcutHotKeyID(for shortcutIndex: Int) -> UInt32? {
+        guard (1...maxFullscreenShortcutCount).contains(shortcutIndex) else { return nil }
+        return fullscreenShortcutHotKeyBaseID + UInt32(shortcutIndex - 1)
+    }
+
+    nonisolated private static func fullscreenShortcutIndex(for hotKeyID: UInt32) -> Int? {
+        let maxHotKeyID = fullscreenShortcutHotKeyBaseID + UInt32(maxFullscreenShortcutCount - 1)
+        guard hotKeyID >= fullscreenShortcutHotKeyBaseID, hotKeyID <= maxHotKeyID else { return nil }
+        return Int(hotKeyID - fullscreenShortcutHotKeyBaseID) + 1
+    }
+
+    nonisolated private static func fullscreenShortcutHotKeyIDs(forCount count: Int) -> Set<UInt32> {
+        guard count > 0 else { return [] }
+        return Set((1...count).compactMap { fullscreenShortcutHotKeyID(for: $0) })
     }
 
     nonisolated private func triggerFirstEmptySpaceWhenModifierKeysReleased(retryCount: Int = 0) {

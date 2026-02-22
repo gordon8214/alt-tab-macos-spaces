@@ -165,9 +165,10 @@ enum SCSpacesSnapshotBuilder {
             existingOrder: fullscreenPreferredOrder,
             availableSpaceIDs: fullscreenSpaces.map { $0.0 }
         )
+        let fullscreenShortcutModifierSymbols = SCPreferences.loadFullscreenShortcutModifiers().symbolString
 
         var fullscreenItems: [FullscreenSpaceSnapshotItem] = []
-        for spaceId in mergedFullscreenOrder {
+        for (offset, spaceId) in mergedFullscreenOrder.enumerated() {
             guard let entry = fullscreenSpaces.first(where: { $0.0 == spaceId }) else { continue }
             let rawSpaceIndex = entry.1
             let screenUUID = screenSpacesMap.first(where: { $0.value.contains(spaceId) })?.key as String? ?? ""
@@ -175,7 +176,7 @@ enum SCSpacesSnapshotBuilder {
 
             let bundleIDs = uniqueBundleIDs(in: windowsInSpace)
             let title = fullscreenTitle(windows: windowsInSpace, fallbackRawSpaceIndex: rawSpaceIndex)
-            let subtitle = ""
+            let subtitle = fullscreenKeyboardShortcutSubtitle(offset + 1, modifierSymbols: fullscreenShortcutModifierSymbols)
             let layoutSnapshot = buildLayoutSnapshot(from: windowsInSpace)
 
             fullscreenItems.append(FullscreenSpaceSnapshotItem(
@@ -320,6 +321,11 @@ enum SCSpacesSnapshotBuilder {
     private static func keyboardShortcutSubtitle(_ spaceIndex: Int) -> String {
         guard spaceIndex >= 1, spaceIndex <= 9 else { return "" }
         return "⌃\(spaceIndex)"
+    }
+
+    private static func fullscreenKeyboardShortcutSubtitle(_ spaceIndex: Int, modifierSymbols: String) -> String {
+        guard spaceIndex >= 1, spaceIndex <= 9, !modifierSymbols.isEmpty else { return "" }
+        return "\(modifierSymbols)\(spaceIndex)"
     }
 
     private static func buildLayoutSnapshot(from windows: [Window]) -> StageLayoutSnapshot? {
