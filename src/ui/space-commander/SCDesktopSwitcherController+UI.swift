@@ -69,6 +69,7 @@ extension SCDesktopSwitcherController {
     func buildPanel() {
         resetPanelTransientState()
         guard let screen = preferredScreen() else { return }
+        showBackgroundBlurPanel(on: screen)
 
         let cardWidth = Self.resolvedCardWidth(
             screenSize: screen.visibleFrame.size,
@@ -484,6 +485,53 @@ extension SCDesktopSwitcherController {
             return mouseScreen
         }
         return NSScreen.main ?? NSScreen.screens.first
+    }
+
+    func showBackgroundBlurPanel(on screen: NSScreen) {
+        guard SCPreferences.loadDesktopBlurBackground() else {
+            dismissBackgroundBlurPanel()
+            return
+        }
+        if let existing = backgroundBlurPanel, existing.frame == screen.frame {
+            existing.orderFront(nil)
+            return
+        }
+        dismissBackgroundBlurPanel()
+        let blurPanel = NSPanel(
+            contentRect: screen.frame,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        blurPanel.hidesOnDeactivate = false
+        blurPanel.isFloatingPanel = true
+        blurPanel.level = NSWindow.Level(rawValue: NSWindow.Level.floating.rawValue - 1)
+        blurPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        blurPanel.isOpaque = false
+        blurPanel.backgroundColor = .clear
+        blurPanel.hasShadow = false
+        blurPanel.ignoresMouseEvents = true
+        blurPanel.animationBehavior = .none
+        blurPanel.setAccessibilityElement(false)
+
+        let effectView = NSVisualEffectView(frame: NSRect(origin: .zero, size: screen.frame.size))
+        if #available(macOS 10.14, *) {
+            effectView.material = .fullScreenUI
+        } else {
+            effectView.material = .dark
+        }
+        effectView.blendingMode = .behindWindow
+        effectView.state = .active
+        effectView.autoresizingMask = [.width, .height]
+        blurPanel.contentView = effectView
+
+        blurPanel.orderFront(nil)
+        backgroundBlurPanel = blurPanel
+    }
+
+    func dismissBackgroundBlurPanel() {
+        backgroundBlurPanel?.orderOut(nil)
+        backgroundBlurPanel = nil
     }
 
 }

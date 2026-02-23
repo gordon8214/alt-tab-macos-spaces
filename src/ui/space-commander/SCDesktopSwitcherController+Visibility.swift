@@ -106,6 +106,7 @@ extension SCDesktopSwitcherController {
         removeMonitors()
         panel?.orderOut(nil)
         panel = nil
+        dismissBackgroundBlurPanel()
         scrollView = nil
         documentView = nil
         allEntries = []

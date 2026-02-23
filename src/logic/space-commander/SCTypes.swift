@@ -161,6 +161,7 @@ enum SCPreferences {
     private static let desktopPreviewSizeKey = "desktopSwitcherPreviewSize"
     private static let desktopCardWidthKey = "desktopSwitcherCardWidth"
     private static let desktopFullscreenModeKey = "desktopSwitcherFullscreenMode"
+    private static let desktopBlurBackgroundKey = "desktopSwitcherBlurBackground"
     private static let desktopWindowFrameKey = "desktopSwitcherWindowFrame"
     private static let spaceCustomNamesKey = "spaceCustomNames"
     private static let spaceCustomOrderKey = "spaceCustomOrder"
@@ -248,6 +249,14 @@ enum SCPreferences {
 
     static func saveDesktopFullscreenMode(_ enabled: Bool) {
         UserDefaults.standard.set(enabled, forKey: desktopFullscreenModeKey)
+    }
+
+    static func loadDesktopBlurBackground() -> Bool {
+        UserDefaults.standard.bool(forKey: desktopBlurBackgroundKey)
+    }
+
+    static func saveDesktopBlurBackground(_ enabled: Bool) {
+        UserDefaults.standard.set(enabled, forKey: desktopBlurBackgroundKey)
     }
 
     static func loadDesktopPreviewStyle() -> DesktopPreviewStyle {

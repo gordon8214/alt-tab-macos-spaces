@@ -13,6 +13,7 @@ class SpacesTab {
     private static var cardWidthSlider: NSSlider?
     private static var cardWidthLabel: NSTextField?
     private static var fullscreenModeCheckbox: NSButton?
+    private static var blurBackgroundCheckbox: NSButton?
     private static var indicatorStyleDropdown: NSPopUpButton?
     private static var showCustomTitleToggle: NSButton?
     private static var spatialModifierRecorder: ModifierRecorderControl?
@@ -114,6 +115,13 @@ class SpacesTab {
             leftTitle: NSLocalizedString("Fill screen", comment: ""),
             rightViews: [fullscreenCheckbox]
         )
+        let blurCheckbox = NSButton(checkboxWithTitle: "", target: self, action: #selector(blurBackgroundChanged(_:)))
+        blurCheckbox.state = SCPreferences.loadDesktopBlurBackground() ? .on : .off
+        blurBackgroundCheckbox = blurCheckbox
+        let blurRow = TableGroupView.Row(
+            leftTitle: NSLocalizedString("Blur background", comment: ""),
+            rightViews: [blurCheckbox]
+        )
         let styleDropdown = NSPopUpButton()
         for style in DesktopPreviewStyle.allCases {
             styleDropdown.addItem(withTitle: style.displayName)
@@ -166,6 +174,7 @@ class SpacesTab {
         table.addRow(desktopsPerRow)
         table.addRow(previewSize)
         table.addRow(fullscreenRow)
+        table.addRow(blurRow)
         table.addRow(previewStyle)
         table.addNewTable()
         table.addRow(indicatorStyle)
@@ -244,6 +253,11 @@ class SpacesTab {
         let enabled = sender.state == .on
         SCPreferences.saveDesktopFullscreenMode(enabled)
         cardWidthSlider?.isEnabled = !enabled
+    }
+
+    @objc private static func blurBackgroundChanged(_ sender: NSButton) {
+        SCPreferences.saveDesktopBlurBackground(sender.state == .on)
+        DispatchQueue.main.async { SCCoordinator.shared?.refreshSpacesSnapshot() }
     }
 
     @objc private static func previewStyleChanged(_ sender: NSPopUpButton) {

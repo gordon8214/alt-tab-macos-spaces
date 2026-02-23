@@ -307,6 +307,7 @@ class SCDesktopSwitcherController: NSObject {
     var onReorderFullscreenDesktops: ((UInt64, Int) -> Void)?
 
     var panel: SCDesktopKeyablePanel?
+    var backgroundBlurPanel: NSPanel?
     var scrollView: NSScrollView?
     var documentView: SCDesktopDocumentView?
     var allEntries: [DesktopEntry] = []
