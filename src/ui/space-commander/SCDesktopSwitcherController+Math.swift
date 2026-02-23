@@ -336,6 +336,75 @@ extension SCDesktopSwitcherController {
         return (currentIndex + 1) % itemCount
     }
 
+    nonisolated static func resolvedCardWidth(
+        screenSize: CGSize,
+        screenAspectRatio: CGFloat,
+        fullscreenCount: Int,
+        regularCount: Int,
+        configuredColumns: Int,
+        isSearchActive: Bool
+    ) -> CGFloat {
+        if SCPreferences.loadDesktopFullscreenMode() {
+            return autoScaledCardWidth(
+                screenSize: screenSize,
+                screenAspectRatio: screenAspectRatio,
+                fullscreenCount: fullscreenCount,
+                regularCount: regularCount,
+                configuredColumns: configuredColumns,
+                isSearchActive: isSearchActive
+            )
+        }
+        return SCPreferences.loadDesktopCardWidth()
+    }
+
+    nonisolated static func autoScaledCardWidth(
+        screenSize: CGSize,
+        screenAspectRatio: CGFloat,
+        fullscreenCount: Int,
+        regularCount: Int,
+        configuredColumns: Int,
+        isSearchActive: Bool
+    ) -> CGFloat {
+        let spacing = panelSpacingConstants()
+        let regularColumnCount = effectiveColumnCount(configuredColumns: configuredColumns, itemCount: regularCount)
+        let hasBothSections = fullscreenCount > 0 && regularCount > 0
+
+        // Total columns across all sections
+        let totalColumns = (fullscreenCount > 0 ? 1 : 0) + regularColumnCount
+        guard totalColumns > 0 else { return SCPreferences.defaultCardWidth }
+
+        // Available width after padding, section spacing, and divider
+        var availableWidth = screenSize.width - spacing.horizontalPadding * 2
+        if hasBothSections {
+            availableWidth -= spacing.sectionSpacing * 2 + spacing.dividerWidth
+        }
+        // Horizontal spacing between columns within the regular section
+        let regularInternalSpacing = CGFloat(max(0, regularColumnCount - 1)) * spacing.horizontalSpacing
+        availableWidth -= regularInternalSpacing
+
+        let widthDerived = availableWidth / CGFloat(totalColumns)
+
+        // Available height after padding
+        let searchInset: CGFloat = isSearchActive ? (searchPillHeight + searchToGridSpacing) : 0
+        let availableHeight = screenSize.height - spacing.verticalPadding * 2 - searchInset
+        let regularRowCount = regularCount > 0 ? Int(ceil(Double(regularCount) / Double(max(1, regularColumnCount)))) : 0
+        let maxRows = max(fullscreenCount, regularRowCount)
+        guard maxRows > 0 else { return SCPreferences.defaultCardWidth }
+
+        let verticalInternalSpacing = CGFloat(max(0, maxRows - 1)) * spacing.verticalSpacing
+        let availableRowHeight = (availableHeight - verticalInternalSpacing) / CGFloat(maxRows)
+
+        // Card height = previewHeight + cardNonPreviewHeight
+        // previewHeight = (cardWidth - 2*inset) / aspectRatio
+        // So: availableRowHeight = (cardWidth - 2*inset) / aspectRatio + nonPreviewHeight
+        // Solving for cardWidth:
+        let safeRatio = max(screenAspectRatio, 0.5)
+        let heightDerived = (availableRowHeight - SCPreferences.cardNonPreviewHeight) * safeRatio + SCPreferences.previewInset * 2
+
+        let result = min(widthDerived, heightDerived)
+        return min(max(result, SCPreferences.minimumCardWidth), SCPreferences.maximumCardWidth)
+    }
+
     nonisolated static func effectiveColumnCount(configuredColumns: Int, itemCount: Int) -> Int {
         let normalizedConfiguredColumns = max(1, configuredColumns)
         guard itemCount > 0 else {

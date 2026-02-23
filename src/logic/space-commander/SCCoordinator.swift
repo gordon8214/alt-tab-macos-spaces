@@ -204,11 +204,22 @@ class SCCoordinator {
             ?? NSScreen.main
             ?? NSScreen.screens.first
         let screenAspectRatio = screen?.ratio() ?? (16.0 / 9.0)
+        let screenSize = screen?.visibleFrame.size ?? CGSize(width: 1440, height: 900)
+        let fullscreenCount = latestSpacesSnapshot?.fullscreenSpaces.count ?? 0
+        let regularCount = latestSpacesSnapshot?.spaces.count ?? 0
+        let cardWidth = SCDesktopSwitcherController.resolvedCardWidth(
+            screenSize: screenSize,
+            screenAspectRatio: screenAspectRatio,
+            fullscreenCount: fullscreenCount,
+            regularCount: regularCount,
+            configuredColumns: SCPreferences.loadDesktopColumns(),
+            isSearchActive: false
+        )
         let action = Self.spatialDesktopAttemptAction(
             snapshot: latestSpacesSnapshot,
             direction: direction,
             configuredRegularColumns: SCPreferences.loadDesktopColumns(),
-            previewSize: SCPreferences.loadDesktopPreviewSize(),
+            cardWidth: cardWidth,
             screenAspectRatio: screenAspectRatio
         )
         switch action {
@@ -471,7 +482,7 @@ extension SCCoordinator {
         snapshot: SpacesSnapshot?,
         direction: SpatialDirection,
         configuredRegularColumns: Int,
-        previewSize: DesktopPreviewSize,
+        cardWidth: CGFloat,
         screenAspectRatio: CGFloat
     ) -> SCSpatialDesktopAttemptAction {
         guard let snapshot else {
@@ -481,7 +492,7 @@ extension SCCoordinator {
             snapshot: snapshot,
             direction: direction,
             configuredRegularColumns: configuredRegularColumns,
-            previewSize: previewSize,
+            cardWidth: cardWidth,
             screenAspectRatio: screenAspectRatio
         ) else {
             return .beep

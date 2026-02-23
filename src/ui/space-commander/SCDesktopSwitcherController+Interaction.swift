@@ -217,6 +217,7 @@ extension SCDesktopSwitcherController {
 
     func savePanelFrame() {
         guard let panel else { return }
+        guard !SCPreferences.loadDesktopFullscreenMode() else { return }
         SCPreferences.saveDesktopSwitcherFrame(panel.frame)
     }
 

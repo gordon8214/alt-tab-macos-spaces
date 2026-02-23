@@ -5,7 +5,7 @@ extension SCDesktopSwitcherController {
         snapshot: SpacesSnapshot,
         direction: SpatialDirection,
         configuredRegularColumns: Int,
-        previewSize: DesktopPreviewSize,
+        cardWidth: CGFloat,
         screenAspectRatio: CGFloat
     ) -> SpatialMoveResolution? {
         let entries = spatialEntries(from: snapshot)
@@ -13,7 +13,7 @@ extension SCDesktopSwitcherController {
             return nil
         }
 
-        let cardSize = previewSize.cardSize(for: screenAspectRatio)
+        let cardSize = SCPreferences.cardSize(forCardWidth: cardWidth, screenAspectRatio: screenAspectRatio)
         let frames = spatialFrames(
             entries: entries,
             configuredRegularColumns: configuredRegularColumns,

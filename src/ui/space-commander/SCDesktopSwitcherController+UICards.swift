@@ -7,14 +7,14 @@ extension SCDesktopSwitcherController {
         for desktop: DesktopEntry,
         frame: CGRect,
         previewHeight: CGFloat,
-        previewSize: DesktopPreviewSize,
+        cardWidth: CGFloat,
         previewStyle: DesktopPreviewStyle
     ) -> SCDesktopCardView {
         let card = SCDesktopCardView(frame: frame)
         card.setAccessibilityRole(.button)
         card.setAccessibilityLabel("\(desktop.title) \(desktop.subtitle)")
 
-        let inset = DesktopPreviewSize.previewInset
+        let inset = SCPreferences.previewInset
         let previewFrame = CGRect(x: inset, y: inset, width: frame.width - inset * 2, height: previewHeight)
         let previewView = SCDesktopLayoutPreviewView(frame: previewFrame)
         previewView.snapshot = desktop.layoutSnapshot
@@ -26,7 +26,7 @@ extension SCDesktopSwitcherController {
         previewView.layer?.masksToBounds = true
         card.addSubview(previewView)
 
-        addPreviewIcons(to: card, desktop: desktop, previewFrame: previewFrame, previewSize: previewSize)
+        addPreviewIcons(to: card, desktop: desktop, previewFrame: previewFrame, cardWidth: cardWidth)
         addDesktopTitleLabels(to: card, desktop: desktop, frame: frame, previewFrame: previewFrame)
         return card
     }
@@ -35,11 +35,14 @@ extension SCDesktopSwitcherController {
         to card: SCDesktopCardView,
         desktop: DesktopEntry,
         previewFrame: CGRect,
-        previewSize: DesktopPreviewSize
+        cardWidth: CGFloat
     ) {
-        let iconSize: CGFloat = previewSize == .small ? 34 : 40
+        // Linear interpolation: 30 at min width (160), 40 at max width (400)
+        let t = min(max((cardWidth - SCPreferences.minimumCardWidth) / (SCPreferences.maximumCardWidth - SCPreferences.minimumCardWidth), 0), 1)
+        let iconSize: CGFloat = 30 + t * 10
         let iconSpacing: CGFloat = 4
-        let iconCornerRadius: CGFloat = previewSize == .small ? 8 : 10
+        // Linear interpolation: 8 at min width (160), 10 at max width (400)
+        let iconCornerRadius: CGFloat = 8 + t * 2
 
         for (iconIndex, bundleID) in desktop.bundleIDs.prefix(4).enumerated() {
             let iconX = previewFrame.minX + 8 + CGFloat(iconIndex) * (iconSize + iconSpacing)

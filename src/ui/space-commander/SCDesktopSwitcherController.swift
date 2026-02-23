@@ -352,8 +352,8 @@ class SCDesktopSwitcherController: NSObject {
     let dragReflowAnimationDuration: TimeInterval = 0.14
     let dragLiftAnimationDuration: TimeInterval = 0.12
     let panelCornerRadius: CGFloat = 16
-    let searchPillHeight: CGFloat = 24
-    let searchToGridSpacing: CGFloat = 10
+    nonisolated static let searchPillHeight: CGFloat = 24
+    nonisolated static let searchToGridSpacing: CGFloat = 10
     let minimumEmptyStateWidth: CGFloat = 320
     let minimumEmptyStateHeight: CGFloat = 160
 

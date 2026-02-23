@@ -5,7 +5,7 @@ extension SCDesktopSwitcherController {
     struct PanelLayout {
         let panelFrame: NSRect
         let contentSize: CGSize
-        let previewSize: DesktopPreviewSize
+        let cardWidth: CGFloat
         let previewStyle: DesktopPreviewStyle
         let cardSize: CGSize
         let previewHeight: CGFloat
@@ -20,6 +20,7 @@ extension SCDesktopSwitcherController {
         let fullscreenSectionHeight: CGFloat
         let regularSectionHeight: CGFloat
         let hasBothSections: Bool
+        let isFullscreenMode: Bool
     }
 
     struct PanelSetup {
@@ -70,8 +71,16 @@ extension SCDesktopSwitcherController {
         resetPanelTransientState()
         guard let screen = preferredScreen() else { return }
 
-        let previewSize = SCPreferences.loadDesktopPreviewSize()
-        let layout = panelLayout(for: screen, previewSize: previewSize, screenAspectRatio: screen.ratio())
+        let isFullscreenMode = SCPreferences.loadDesktopFullscreenMode()
+        let cardWidth = Self.resolvedCardWidth(
+            screenSize: screen.visibleFrame.size,
+            screenAspectRatio: screen.ratio(),
+            fullscreenCount: fullscreenVisibleCount,
+            regularCount: regularVisibleCount,
+            configuredColumns: SCPreferences.loadDesktopColumns(),
+            isSearchActive: isSearchActive
+        )
+        let layout = panelLayout(for: screen, cardWidth: cardWidth, screenAspectRatio: screen.ratio(), isFullscreenMode: isFullscreenMode)
         guard let panelSetup = preparePanel(layout: layout) else { return }
 
         let docView = SCDesktopDocumentView(
@@ -126,9 +135,9 @@ extension SCDesktopSwitcherController {
         displayOrder = Array(entries.indices)
     }
 
-    func panelLayout(for screen: NSScreen, previewSize: DesktopPreviewSize, screenAspectRatio: CGFloat) -> PanelLayout {
-        let cardSize = previewSize.cardSize(for: screenAspectRatio)
-        let previewHeight = previewSize.previewHeight(for: screenAspectRatio)
+    func panelLayout(for screen: NSScreen, cardWidth: CGFloat, screenAspectRatio: CGFloat, isFullscreenMode: Bool) -> PanelLayout {
+        let cardSize = SCPreferences.cardSize(forCardWidth: cardWidth, screenAspectRatio: screenAspectRatio)
+        let previewHeight = SCPreferences.previewHeight(forCardWidth: cardWidth, screenAspectRatio: screenAspectRatio)
         let spacing = panelSpacing()
         let regularColumnCount = Self.effectiveColumnCount(
             configuredColumns: SCPreferences.loadDesktopColumns(),
@@ -153,12 +162,17 @@ extension SCDesktopSwitcherController {
                 + max(sections.fullscreenSectionHeight, sections.regularSectionHeight)
         )
         let contentSize = resolvedContentSize(rawContentSize: rawContentSize, gridTopInset: spacing.gridTopInset)
-        let panelFrame = Self.panelFrame(visibleFrame: screen.visibleFrame, contentSize: contentSize)
+        let panelFrame: NSRect
+        if isFullscreenMode {
+            panelFrame = screen.visibleFrame
+        } else {
+            panelFrame = Self.panelFrame(visibleFrame: screen.visibleFrame, contentSize: contentSize)
+        }
 
         return PanelLayout(
             panelFrame: panelFrame,
             contentSize: contentSize,
-            previewSize: previewSize,
+            cardWidth: cardWidth,
             previewStyle: SCPreferences.loadDesktopPreviewStyle(),
             cardSize: cardSize,
             previewHeight: previewHeight,
@@ -172,7 +186,8 @@ extension SCDesktopSwitcherController {
             regularColumnCount: sections.regularColumnCount,
             fullscreenSectionHeight: sections.fullscreenSectionHeight,
             regularSectionHeight: sections.regularSectionHeight,
-            hasBothSections: sections.hasBothSections
+            hasBothSections: sections.hasBothSections,
+            isFullscreenMode: isFullscreenMode
         )
     }
 
@@ -185,7 +200,7 @@ extension SCDesktopSwitcherController {
             verticalSpacing: constants.verticalSpacing,
             sectionSpacing: constants.sectionSpacing,
             dividerWidth: constants.dividerWidth,
-            gridTopInset: isSearchActive ? (searchPillHeight + searchToGridSpacing) : 0
+            gridTopInset: isSearchActive ? (Self.searchPillHeight + Self.searchToGridSpacing) : 0
         )
     }
 
@@ -282,6 +297,7 @@ extension SCDesktopSwitcherController {
         }
         panel.setFrame(layout.panelFrame, display: true, animate: false)
         panel.animationBehavior = .none
+        effectView.layer?.cornerRadius = layout.isFullscreenMode ? 0 : panelCornerRadius
 
         if scrollView == nil {
             let rebuiltScrollView = NSScrollView(frame: effectView.bounds)
@@ -322,7 +338,7 @@ extension SCDesktopSwitcherController {
         effectView.material = .popover
         effectView.state = .active
         effectView.wantsLayer = true
-        effectView.layer?.cornerRadius = panelCornerRadius
+        effectView.layer?.cornerRadius = layout.isFullscreenMode ? 0 : panelCornerRadius
         effectView.layer?.masksToBounds = true
         effectView.autoresizingMask = [.width, .height]
 
@@ -356,7 +372,7 @@ extension SCDesktopSwitcherController {
                 origins: origins,
                 slots: &slots
             )
-            let card = makeDesktopCard(for: desktop, frame: frame, previewHeight: layout.previewHeight, previewSize: layout.previewSize, previewStyle: layout.previewStyle)
+            let card = makeDesktopCard(for: desktop, frame: frame, previewHeight: layout.previewHeight, cardWidth: layout.cardWidth, previewStyle: layout.previewStyle)
             docView.addSubview(card)
             cardViewsByDesktopID[desktop.stableID] = card
             baseCardFrames.append(frame)
@@ -415,7 +431,7 @@ extension SCDesktopSwitcherController {
 
         let availableWidth = max(80, contentWidth - (horizontalPadding * 2) - 22)
         let measured = label.attributedStringValue.boundingRect(
-            with: NSSize(width: availableWidth, height: searchPillHeight),
+            with: NSSize(width: availableWidth, height: Self.searchPillHeight),
             options: [.usesLineFragmentOrigin, .usesFontLeading]
         )
         let pillWidth = min(
@@ -427,16 +443,16 @@ extension SCDesktopSwitcherController {
             x: horizontalPadding,
             y: verticalPadding,
             width: pillWidth,
-            height: searchPillHeight
+            height: Self.searchPillHeight
         )
         let pillView = NSView(frame: pillFrame)
         pillView.wantsLayer = true
-        pillView.layer?.cornerRadius = searchPillHeight / 2
+        pillView.layer?.cornerRadius = Self.searchPillHeight / 2
         pillView.layer?.backgroundColor = NSColor.selectedControlColor.withAlphaComponent(0.2).cgColor
 
         label.frame = CGRect(
             x: 11,
-            y: (searchPillHeight - 16) / 2,
+            y: (Self.searchPillHeight - 16) / 2,
             width: pillFrame.width - 22,
             height: 16
         )

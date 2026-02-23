@@ -19,47 +19,6 @@ enum DesktopPreviewStyle: Int, CaseIterable, Codable, Sendable {
     }
 }
 
-enum DesktopPreviewSize: Int, CaseIterable, Codable, Sendable {
-    case small
-    case medium
-    case large
-
-    var displayName: String {
-        switch self {
-        case .small:
-            return NSLocalizedString("Small", comment: "")
-        case .medium:
-            return NSLocalizedString("Medium", comment: "")
-        case .large:
-            return NSLocalizedString("Large", comment: "")
-        }
-    }
-
-    static let previewInset: CGFloat = 12
-    // 12pt top inset + 10pt gap + 20pt title + 8pt bottom
-    static let cardNonPreviewHeight: CGFloat = 50
-
-    private var cardWidth: CGFloat {
-        switch self {
-        case .small: return 220
-        case .medium: return 280
-        case .large: return 340
-        }
-    }
-
-    func previewHeight(for screenAspectRatio: CGFloat) -> CGFloat {
-        let safeRatio = max(screenAspectRatio, 0.5)
-        return (cardWidth - Self.previewInset * 2) / safeRatio
-    }
-
-    func cardSize(for screenAspectRatio: CGFloat) -> CGSize {
-        CGSize(width: cardWidth, height: previewHeight(for: screenAspectRatio) + Self.cardNonPreviewHeight)
-    }
-
-    static var `default`: DesktopPreviewSize {
-        .medium
-    }
-}
 
 enum MenuBarDesktopIndicatorStyle: Int, CaseIterable, Codable, Sendable {
     case boxedNumber
@@ -200,6 +159,8 @@ enum SCPreferences {
     private static let desktopColumnsKey = "desktopSwitcherColumns"
     private static let desktopPreviewStyleKey = "desktopSwitcherPreviewStyle"
     private static let desktopPreviewSizeKey = "desktopSwitcherPreviewSize"
+    private static let desktopCardWidthKey = "desktopSwitcherCardWidth"
+    private static let desktopFullscreenModeKey = "desktopSwitcherFullscreenMode"
     private static let desktopWindowFrameKey = "desktopSwitcherWindowFrame"
     private static let spaceCustomNamesKey = "spaceCustomNames"
     private static let spaceCustomOrderKey = "spaceCustomOrder"
@@ -240,13 +201,53 @@ enum SCPreferences {
         UserDefaults.standard.set(clamped, forKey: desktopColumnsKey)
     }
 
-    static func loadDesktopPreviewSize() -> DesktopPreviewSize {
-        let stored = UserDefaults.standard.integer(forKey: desktopPreviewSizeKey)
-        return DesktopPreviewSize(rawValue: stored) ?? .default
+    static let previewInset: CGFloat = 12
+    // 12pt top inset + 10pt gap + 20pt title + 8pt bottom
+    static let cardNonPreviewHeight: CGFloat = 50
+    static let defaultCardWidth: CGFloat = 280
+    static let minimumCardWidth: CGFloat = 160
+    static let maximumCardWidth: CGFloat = 400
+
+    static func previewHeight(forCardWidth cardWidth: CGFloat, screenAspectRatio: CGFloat) -> CGFloat {
+        let safeRatio = max(screenAspectRatio, 0.5)
+        return (cardWidth - previewInset * 2) / safeRatio
     }
 
-    static func saveDesktopPreviewSize(_ size: DesktopPreviewSize) {
-        UserDefaults.standard.set(size.rawValue, forKey: desktopPreviewSizeKey)
+    static func cardSize(forCardWidth cardWidth: CGFloat, screenAspectRatio: CGFloat) -> CGSize {
+        CGSize(width: cardWidth, height: previewHeight(forCardWidth: cardWidth, screenAspectRatio: screenAspectRatio) + cardNonPreviewHeight)
+    }
+
+    static func loadDesktopCardWidth() -> CGFloat {
+        if let stored = UserDefaults.standard.object(forKey: desktopCardWidthKey) as? Double, stored > 0 {
+            return CGFloat(min(max(stored, Double(minimumCardWidth)), Double(maximumCardWidth)))
+        }
+        // Only migrate if the old key was explicitly set; otherwise use default
+        guard UserDefaults.standard.object(forKey: desktopPreviewSizeKey) != nil else {
+            saveDesktopCardWidth(defaultCardWidth)
+            return defaultCardWidth
+        }
+        let oldEnumValue = UserDefaults.standard.integer(forKey: desktopPreviewSizeKey)
+        let migrated: CGFloat
+        switch oldEnumValue {
+        case 0: migrated = 220
+        case 2: migrated = 340
+        default: migrated = 280
+        }
+        saveDesktopCardWidth(migrated)
+        return migrated
+    }
+
+    static func saveDesktopCardWidth(_ width: CGFloat) {
+        let clamped = min(max(width, minimumCardWidth), maximumCardWidth)
+        UserDefaults.standard.set(Double(clamped), forKey: desktopCardWidthKey)
+    }
+
+    static func loadDesktopFullscreenMode() -> Bool {
+        UserDefaults.standard.bool(forKey: desktopFullscreenModeKey)
+    }
+
+    static func saveDesktopFullscreenMode(_ enabled: Bool) {
+        UserDefaults.standard.set(enabled, forKey: desktopFullscreenModeKey)
     }
 
     static func loadDesktopPreviewStyle() -> DesktopPreviewStyle {

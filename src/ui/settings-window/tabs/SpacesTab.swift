@@ -10,7 +10,9 @@ class SpacesTab {
     private static var columnsTextField: NSTextField?
     private static var columnsStepper: NSStepper?
     private static var previewStyleDropdown: NSPopUpButton?
-    private static var previewSizeDropdown: NSPopUpButton?
+    private static var cardWidthSlider: NSSlider?
+    private static var cardWidthLabel: NSTextField?
+    private static var fullscreenModeCheckbox: NSButton?
     private static var indicatorStyleDropdown: NSPopUpButton?
     private static var showCustomTitleToggle: NSButton?
     private static var spatialModifierRecorder: ModifierRecorderControl?
@@ -87,17 +89,30 @@ class SpacesTab {
             leftTitle: NSLocalizedString("Desktops per row", comment: ""),
             rightViews: [columnsStack]
         )
-        let previewDropdown = NSPopUpButton()
-        for size in DesktopPreviewSize.allCases {
-            previewDropdown.addItem(withTitle: size.displayName)
-        }
-        previewDropdown.selectItem(at: SCPreferences.loadDesktopPreviewSize().rawValue)
-        previewDropdown.target = self
-        previewDropdown.action = #selector(previewSizeChanged(_:))
-        previewSizeDropdown = previewDropdown
+        let isFullscreen = SCPreferences.loadDesktopFullscreenMode()
+        let currentWidth = SCPreferences.loadDesktopCardWidth()
+        let slider = NSSlider(value: Double(currentWidth), minValue: Double(SCPreferences.minimumCardWidth), maxValue: Double(SCPreferences.maximumCardWidth), target: self, action: #selector(cardWidthSliderChanged(_:)))
+        slider.isContinuous = true
+        slider.widthAnchor.constraint(equalToConstant: 140).isActive = true
+        slider.isEnabled = !isFullscreen
+        cardWidthSlider = slider
+        let widthLabel = NSTextField(labelWithString: "\(Int(currentWidth))pt")
+        widthLabel.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
+        widthLabel.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        cardWidthLabel = widthLabel
+        let sliderStack = NSStackView(views: [slider, widthLabel])
+        sliderStack.orientation = .horizontal
+        sliderStack.spacing = 6
         let previewSize = TableGroupView.Row(
-            leftTitle: NSLocalizedString("Preview size", comment: ""),
-            rightViews: [previewDropdown]
+            leftTitle: NSLocalizedString("Card size", comment: ""),
+            rightViews: [sliderStack]
+        )
+        let fullscreenCheckbox = NSButton(checkboxWithTitle: "", target: self, action: #selector(fullscreenModeChanged(_:)))
+        fullscreenCheckbox.state = isFullscreen ? .on : .off
+        fullscreenModeCheckbox = fullscreenCheckbox
+        let fullscreenRow = TableGroupView.Row(
+            leftTitle: NSLocalizedString("Fullscreen mode", comment: ""),
+            rightViews: [fullscreenCheckbox]
         )
         let styleDropdown = NSPopUpButton()
         for style in DesktopPreviewStyle.allCases {
@@ -150,6 +165,7 @@ class SpacesTab {
         table.addNewTable()
         table.addRow(desktopsPerRow)
         table.addRow(previewSize)
+        table.addRow(fullscreenRow)
         table.addRow(previewStyle)
         table.addNewTable()
         table.addRow(indicatorStyle)
@@ -218,9 +234,16 @@ class SpacesTab {
         SCPreferences.saveDesktopColumns(sender.integerValue)
     }
 
-    @objc private static func previewSizeChanged(_ sender: NSPopUpButton) {
-        guard let size = DesktopPreviewSize(rawValue: sender.indexOfSelectedItem) else { return }
-        SCPreferences.saveDesktopPreviewSize(size)
+    @objc private static func cardWidthSliderChanged(_ sender: NSSlider) {
+        let width = CGFloat(sender.integerValue)
+        cardWidthLabel?.stringValue = "\(Int(width))pt"
+        SCPreferences.saveDesktopCardWidth(width)
+    }
+
+    @objc private static func fullscreenModeChanged(_ sender: NSButton) {
+        let enabled = sender.state == .on
+        SCPreferences.saveDesktopFullscreenMode(enabled)
+        cardWidthSlider?.isEnabled = !enabled
     }
 
     @objc private static func previewStyleChanged(_ sender: NSPopUpButton) {
