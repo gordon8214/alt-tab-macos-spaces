@@ -22,6 +22,7 @@ extension SCDesktopSwitcherController {
         let hasBothSections: Bool
         let isFullscreenMode: Bool
         let contentOffsetX: CGFloat
+        let contentOffsetY: CGFloat
     }
 
     struct PanelSetup {
@@ -89,7 +90,7 @@ extension SCDesktopSwitcherController {
                 x: 0,
                 y: 0,
                 width: max(layout.contentSize.width, layout.panelFrame.width),
-                height: layout.contentSize.height
+                height: max(layout.contentSize.height, layout.panelFrame.height)
             )
         )
         panelSetup.scrollView.documentView = docView
@@ -98,7 +99,7 @@ extension SCDesktopSwitcherController {
             addSearchQueryPill(
                 in: docView,
                 horizontalPadding: layout.contentOffsetX + layout.horizontalPadding,
-                verticalPadding: layout.verticalPadding,
+                verticalPadding: layout.contentOffsetY + layout.verticalPadding,
                 contentWidth: layout.contentSize.width
             )
         }
@@ -107,7 +108,7 @@ extension SCDesktopSwitcherController {
             addNoResultsLabel(
                 in: docView,
                 horizontalPadding: layout.contentOffsetX + layout.horizontalPadding,
-                verticalPadding: layout.verticalPadding,
+                verticalPadding: layout.contentOffsetY + layout.verticalPadding,
                 contentSize: layout.contentSize,
                 gridTopInset: layout.gridTopInset
             )
@@ -189,7 +190,8 @@ extension SCDesktopSwitcherController {
             regularSectionHeight: sections.regularSectionHeight,
             hasBothSections: sections.hasBothSections,
             isFullscreenMode: isFullscreenMode,
-            contentOffsetX: isFullscreenMode ? max(0, (panelFrame.width - contentSize.width) / 2) : 0
+            contentOffsetX: isFullscreenMode ? max(0, (panelFrame.width - contentSize.width) / 2) : 0,
+            contentOffsetY: isFullscreenMode ? max(0, (panelFrame.height - contentSize.height) / 2) : 0
         )
     }
 
@@ -386,7 +388,7 @@ extension SCDesktopSwitcherController {
             let dividerX = ox + layout.horizontalPadding + layout.cardSize.width + layout.sectionSpacing
             let dividerFrame = CGRect(
                 x: dividerX,
-                y: layout.verticalPadding + layout.gridTopInset,
+                y: layout.contentOffsetY + layout.verticalPadding + layout.gridTopInset,
                 width: layout.dividerWidth,
                 height: dividerHeight
             )
@@ -403,19 +405,20 @@ extension SCDesktopSwitcherController {
         origins: PanelSectionOrigins,
         slots: inout PanelSectionSlots
     ) -> CGRect {
+        let oy = layout.contentOffsetY
         let originX: CGFloat
         let originY: CGFloat
         switch desktop.kind {
         case .fullscreen:
             originX = origins.fullscreen
-            originY = layout.verticalPadding + layout.gridTopInset + CGFloat(slots.fullscreen) * (layout.cardSize.height + layout.verticalSpacing)
+            originY = oy + layout.verticalPadding + layout.gridTopInset + CGFloat(slots.fullscreen) * (layout.cardSize.height + layout.verticalSpacing)
             slots.fullscreen += 1
 
         case .regular:
             let row = slots.regular / max(1, layout.regularColumnCount)
             let column = slots.regular % max(1, layout.regularColumnCount)
             originX = origins.regular + CGFloat(column) * (layout.cardSize.width + layout.horizontalSpacing)
-            originY = layout.verticalPadding + layout.gridTopInset + CGFloat(row) * (layout.cardSize.height + layout.verticalSpacing)
+            originY = oy + layout.verticalPadding + layout.gridTopInset + CGFloat(row) * (layout.cardSize.height + layout.verticalSpacing)
             slots.regular += 1
         }
 

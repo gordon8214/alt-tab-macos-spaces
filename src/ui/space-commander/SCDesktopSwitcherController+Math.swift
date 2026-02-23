@@ -402,7 +402,7 @@ extension SCDesktopSwitcherController {
         let heightDerived = (availableRowHeight - SCPreferences.cardNonPreviewHeight) * safeRatio + SCPreferences.previewInset * 2
 
         let result = min(widthDerived, heightDerived)
-        return min(max(result, SCPreferences.minimumCardWidth), SCPreferences.maximumCardWidth)
+        return max(result, SCPreferences.minimumCardWidth)
     }
 
     nonisolated static func effectiveColumnCount(configuredColumns: Int, itemCount: Int) -> Int {
