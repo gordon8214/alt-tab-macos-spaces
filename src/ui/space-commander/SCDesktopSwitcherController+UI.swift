@@ -21,6 +21,7 @@ extension SCDesktopSwitcherController {
         let regularSectionHeight: CGFloat
         let hasBothSections: Bool
         let isFullscreenMode: Bool
+        let contentOffsetX: CGFloat
     }
 
     struct PanelSetup {
@@ -96,7 +97,7 @@ extension SCDesktopSwitcherController {
         if isSearchActive {
             addSearchQueryPill(
                 in: docView,
-                horizontalPadding: layout.horizontalPadding,
+                horizontalPadding: layout.contentOffsetX + layout.horizontalPadding,
                 verticalPadding: layout.verticalPadding,
                 contentWidth: layout.contentSize.width
             )
@@ -105,7 +106,7 @@ extension SCDesktopSwitcherController {
         if entries.isEmpty {
             addNoResultsLabel(
                 in: docView,
-                horizontalPadding: layout.horizontalPadding,
+                horizontalPadding: layout.contentOffsetX + layout.horizontalPadding,
                 verticalPadding: layout.verticalPadding,
                 contentSize: layout.contentSize,
                 gridTopInset: layout.gridTopInset
@@ -187,7 +188,8 @@ extension SCDesktopSwitcherController {
             fullscreenSectionHeight: sections.fullscreenSectionHeight,
             regularSectionHeight: sections.regularSectionHeight,
             hasBothSections: sections.hasBothSections,
-            isFullscreenMode: isFullscreenMode
+            isFullscreenMode: isFullscreenMode,
+            contentOffsetX: isFullscreenMode ? max(0, (panelFrame.width - contentSize.width) / 2) : 0
         )
     }
 
@@ -357,11 +359,12 @@ extension SCDesktopSwitcherController {
     }
 
     func renderEntries(in docView: SCDesktopDocumentView, layout: PanelLayout) {
+        let ox = layout.contentOffsetX
         let origins = PanelSectionOrigins(
-            fullscreen: layout.horizontalPadding,
+            fullscreen: ox + layout.horizontalPadding,
             regular: layout.hasBothSections
-            ? (layout.horizontalPadding + layout.cardSize.width + layout.sectionSpacing + layout.dividerWidth + layout.sectionSpacing)
-            : layout.horizontalPadding
+            ? (ox + layout.horizontalPadding + layout.cardSize.width + layout.sectionSpacing + layout.dividerWidth + layout.sectionSpacing)
+            : ox + layout.horizontalPadding
         )
 
         var slots = PanelSectionSlots()
@@ -380,7 +383,7 @@ extension SCDesktopSwitcherController {
 
         if layout.hasBothSections {
             let dividerHeight = max(layout.fullscreenSectionHeight, layout.regularSectionHeight)
-            let dividerX = layout.horizontalPadding + layout.cardSize.width + layout.sectionSpacing
+            let dividerX = ox + layout.horizontalPadding + layout.cardSize.width + layout.sectionSpacing
             let dividerFrame = CGRect(
                 x: dividerX,
                 y: layout.verticalPadding + layout.gridTopInset,
