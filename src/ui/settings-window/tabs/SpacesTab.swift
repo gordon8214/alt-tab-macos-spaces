@@ -111,7 +111,7 @@ class SpacesTab {
         fullscreenCheckbox.state = isFullscreen ? .on : .off
         fullscreenModeCheckbox = fullscreenCheckbox
         let fullscreenRow = TableGroupView.Row(
-            leftTitle: NSLocalizedString("Fullscreen mode", comment: ""),
+            leftTitle: NSLocalizedString("Fill screen", comment: ""),
             rightViews: [fullscreenCheckbox]
         )
         let styleDropdown = NSPopUpButton()
