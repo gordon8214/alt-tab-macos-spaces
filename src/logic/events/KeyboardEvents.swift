@@ -16,7 +16,7 @@ class KeyboardEvents {
     private static let cgEventFlagsChangedHandler: CGEventTapCallBack = { _, type, cgEvent, _ in
         if type == .flagsChanged {
             // TODO: it would be great to shortcut matching and trigger on the background thread
-            // it would enable us to set App.app.isBeingUsed here, and could stop tasks on main when they check the flag
+            // it would enable us to set App.shared.isBeingUsed here, and could stop tasks on main when they check the flag
             DispatchQueue.main.async {
                 let modifiers = NSEvent.ModifierFlags(rawValue: UInt(cgEvent.flags.rawValue))
                 // TODO: ideally, we want to absorb all modifier keys except holdShortcut
@@ -97,7 +97,7 @@ class KeyboardEvents {
         eventTap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
-            options: .defaultTap,
+            options: .listenOnly,
             eventsOfInterest: eventMask,
             callback: cgEventFlagsChangedHandler,
             userInfo: nil)
@@ -105,7 +105,7 @@ class KeyboardEvents {
             let runLoopSource = CFMachPortCreateRunLoopSource(nil, eventTap, 0)
             CFRunLoopAddSource(BackgroundWork.keyboardAndMouseAndTrackpadEventsThread.runLoop, runLoopSource, .commonModes)
         } else {
-            App.app.restart()
+            App.restart()
         }
     }
 

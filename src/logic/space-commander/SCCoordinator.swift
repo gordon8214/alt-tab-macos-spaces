@@ -44,7 +44,7 @@ class SCCoordinator {
             self?.activateFullscreenDesktop(spaceID: spaceID, screenUUID: screenUUID)
         }
         statusBarController?.onPreferences = {
-            App.app.showSettingsWindow()
+            App.showSettingsWindow()
         }
         imageCaptureManager = SCDesktopImageCaptureManager()
         hotKeyManager = SCHotKeyManager()

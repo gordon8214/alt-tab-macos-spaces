@@ -17,7 +17,7 @@ class SpacesEvents {
             if let frontmostPid = Applications.frontmostPid,
                let frontmostApp = Applications.findOrCreate(frontmostPid, false),
                let focusedWindow = frontmostApp.focusedWindow {
-                App.app.checkIfShortcutsShouldBeDisabled(focusedWindow, nil)
+                App.checkIfShortcutsShouldBeDisabled(focusedWindow, nil)
             }
         }
     }

@@ -456,6 +456,10 @@ private final class SettingsSidebarCellView: NSTableCellView {
     }
 }
 
+private final class SettingsFlippedView: NSView {
+    override var isFlipped: Bool { true }
+}
+
 class SettingsWindow: NSWindow {
     static let contentWidth = CGFloat(620)
     static let width = contentWidth
@@ -486,9 +490,10 @@ class SettingsWindow: NSWindow {
     private static let controlHighlightInset = CGFloat(1)
     private static let controlHighlightMinCornerRadius = CGFloat(4)
     private static let controlHighlightMaxCornerRadius = CGFloat(9)
+    static var shared: SettingsWindow!
 
-    var canBecomeKey_ = true
-    override var canBecomeKey: Bool { canBecomeKey_ }
+    static var canBecomeKey_ = true
+    override var canBecomeKey: Bool { Self.canBecomeKey_ }
 
     private let splitViewController = NSSplitViewController()
     private let sidebarContainer = NSView()
@@ -497,7 +502,7 @@ class SettingsWindow: NSWindow {
     private let sidebarScrollView = NSScrollView()
     private let sidebarTableView = NSTableView()
     private let rightScrollView = NSScrollView()
-    private let sectionsDocumentView = FlippedView(frame: .zero)
+    private let sectionsDocumentView = SettingsFlippedView(frame: .zero)
     private let sectionsStack = NSStackView()
     private let supportButton = AboutTab.makeSupportProjectButton()
     private let resetButton = NSButton(title: NSLocalizedString("Reset settings and restart…", comment: ""), target: nil, action: nil)
@@ -518,6 +523,7 @@ class SettingsWindow: NSWindow {
         setupWindow()
         setupView()
         setFrameAutosaveName("SettingsWindow")
+        Self.shared = self
     }
 
     private func setupWindow() {
@@ -651,20 +657,23 @@ class SettingsWindow: NSWindow {
         ])
     }
 
+    @objc private func resetPreferences() {
+        GeneralTab.resetPreferences()
+    }
+
     private func setupSupportButton(_ parent: NSView) {
+        supportButton.toolTip = supportButton.title
         supportButton.translatesAutoresizingMaskIntoConstraints = false
         parent.addSubview(supportButton)
         NSLayoutConstraint.activate([
             supportButton.centerXAnchor.constraint(equalTo: parent.centerXAnchor),
             supportButton.bottomAnchor.constraint(equalTo: resetButton.topAnchor, constant: -20),
+            supportButton.widthAnchor.constraint(lessThanOrEqualTo: parent.widthAnchor, constant: -Self.sidebarHorizontalPadding * 2),
         ])
     }
 
-    @objc private func resetPreferences() {
-        GeneralTab.resetPreferences()
-    }
-
     private func setupResetButton(_ parent: NSView) {
+        resetButton.toolTip = resetButton.title
         resetButton.bezelStyle = .rounded
         if #available(macOS 11.0, *) { resetButton.hasDestructiveAction = true }
         resetButton.target = self
@@ -674,18 +683,19 @@ class SettingsWindow: NSWindow {
         NSLayoutConstraint.activate([
             resetButton.centerXAnchor.constraint(equalTo: parent.centerXAnchor),
             resetButton.bottomAnchor.constraint(equalTo: quitButton.topAnchor, constant: -20),
-            resetButton.heightAnchor.constraint(equalToConstant: Self.sidebarActionButtonHeight),
+            resetButton.widthAnchor.constraint(lessThanOrEqualTo: parent.widthAnchor, constant: -Self.sidebarHorizontalPadding * 2),
         ])
     }
 
     private func setupQuitButton(_ parent: NSView) {
+        quitButton.toolTip = quitButton.title
         quitButton.bezelStyle = .rounded
         quitButton.translatesAutoresizingMaskIntoConstraints = false
         parent.addSubview(quitButton)
         NSLayoutConstraint.activate([
             quitButton.centerXAnchor.constraint(equalTo: parent.centerXAnchor),
             quitButton.bottomAnchor.constraint(equalTo: parent.bottomAnchor, constant: -10),
-            quitButton.heightAnchor.constraint(equalToConstant: Self.sidebarActionButtonHeight),
+            quitButton.widthAnchor.constraint(lessThanOrEqualTo: parent.widthAnchor, constant: -Self.sidebarHorizontalPadding * 2),
         ])
     }
 
@@ -694,8 +704,7 @@ class SettingsWindow: NSWindow {
             SettingsSectionDefinition(id: "appearance", title: NSLocalizedString("Appearance", comment: ""), imageName: "appearance", systemSymbolName: "paintpalette", view: AppearanceTab.initTab()),
             SettingsSectionDefinition(id: "controls", title: NSLocalizedString("Controls", comment: ""), imageName: "controls", systemSymbolName: "command", view: ControlsTab.initTab()),
             SettingsSectionDefinition(id: "general", title: NSLocalizedString("General", comment: ""), imageName: "general", systemSymbolName: "gearshape", view: GeneralTab.initTab()),
-            SettingsSectionDefinition(id: "policies", title: NSLocalizedString("Policies", comment: ""), imageName: "policies", systemSymbolName: "antenna.radiowaves.left.and.right", view: PoliciesTab.initTab()),
-            SettingsSectionDefinition(id: "blacklists", title: NSLocalizedString("Blacklists", comment: ""), imageName: "blacklists", systemSymbolName: "hand.raised", view: BlacklistsTab.initTab()),
+            SettingsSectionDefinition(id: "exceptions", title: NSLocalizedString("Exceptions", comment: ""), imageName: "exceptions", systemSymbolName: "hand.raised", view: ExceptionsTab.initTab()),
             SettingsSectionDefinition(id: "spaces", title: NSLocalizedString("Spaces", comment: ""), imageName: "spaces", systemSymbolName: "square.grid.2x2", view: SpacesTab.initTab()),
         ]
     }
@@ -846,22 +855,35 @@ class SettingsWindow: NSWindow {
     }
 
     private func highlightTarget(_ textField: NSTextField) -> SettingsSearchHighlightTarget? {
-        let text = textField.stringValue
-        guard !text.isEmpty else { return nil }
-        let baseAttributedString = textField.attributedStringValue
+        guard !textField.stringValue.isEmpty else { return nil }
+        var baseAttributedString: NSAttributedString?
+        var highlightedText = ""
+        var isHighlighted = false
         return SettingsSearchHighlightTarget({ query in
-            SettingsSearch.match(query, in: text)?.ranges ?? []
+            SettingsSearch.match(query, in: textField.stringValue)?.ranges ?? []
         }, { ranges in
-            let mutable = NSMutableAttributedString(attributedString: baseAttributedString)
+            let text = textField.stringValue
+            if !isHighlighted || highlightedText != text {
+                baseAttributedString = textField.attributedStringValue
+                highlightedText = text
+            }
+            let mutable = NSMutableAttributedString(attributedString: baseAttributedString ?? textField.attributedStringValue)
             let nsRanges = ranges.compactMap { SettingsWindow.characterRangeToNSRange($0, in: text) }
             nsRanges.forEach {
                 mutable.addAttribute(.foregroundColor, value: Appearance.searchMatchForegroundColor, range: $0)
             }
             textField.attributedStringValue = mutable
             SettingsWindow.applyRoundedHighlights(to: textField, attributedString: mutable, ranges: nsRanges)
+            isHighlighted = true
         }, {
-            textField.attributedStringValue = baseAttributedString
+            guard isHighlighted else { return }
+            if let baseAttributedString {
+                textField.attributedStringValue = baseAttributedString
+            }
             SettingsWindow.clearRoundedHighlights(from: textField)
+            baseAttributedString = nil
+            highlightedText = ""
+            isHighlighted = false
         })
     }
 
@@ -1150,7 +1172,6 @@ class SettingsWindow: NSWindow {
 
     private func refreshControlsFromSettings() {
         GeneralTab.refreshControlsFromPreferences()
-        PoliciesTab.refreshControlsFromPreferences()
     }
 
     func beginSheetWithSearchHighlight(_ sheet: SheetWindow) {
