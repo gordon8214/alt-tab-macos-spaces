@@ -72,7 +72,6 @@
 		5883F0A829A5182C0071DB65 /* TrackpadEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5883F0A729A5182C0071DB65 /* TrackpadEvents.swift */; };
 		58F694D1585FE04B694DCE17 /* SCStatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00839FFD3F51D4D246814E76 /* SCStatusBarController.swift */; };
 		59B1FD5ED7955E38C2B440DE /* SCCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC270A39B02C92DF1DB39E3 /* SCCoordinator.swift */; };
-		A1B2C3D4E5F60718A9B0C1D2 /* SCDesktopImageCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D3 /* SCDesktopImageCaptureManager.swift */; };
 		5F04852E2F09AC9700235D4A /* WindowCaptureEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F04852D2F09AC9700235D4A /* WindowCaptureEvents.swift */; };
 		5F17452E2F1A908D00128EF8 /* WindowDiscriminator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F17452D2F1A907800128EF8 /* WindowDiscriminator.swift */; };
 		5F21C9E02C6E94240091F72F /* ShortcutsWhenActiveSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F21C9DF2C6E94240091F72F /* ShortcutsWhenActiveSheet.swift */; };
@@ -95,10 +94,11 @@
 		5FEFDF322F181E250065BAA3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5FEFDF312F181E250065BAA3 /* InfoPlist.strings */; };
 		6696E52C3B9FA8239580DBE7 /* SCDesktopSwitcherController+Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7625FCA2DB19C6FC1E2D7C3B /* SCDesktopSwitcherController+Math.swift */; };
 		69AD599D323C1829A87ACCFF /* SCTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 333A062099B6C22D3B942018 /* SCTypes.swift */; };
-
 		76D02BB22BFE7C9E0056008D /* Pods_alt_tab_macos.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0712B3BEA2B3780398C0999 /* Pods_alt_tab_macos.framework */; };
 		899A95853E7929017A36892D /* SCSpaceActivator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603F557538746EF5196B4227 /* SCSpaceActivator.swift */; };
 		8FC2DF055FC7DAF9519A9894 /* SCDesktopSwitcherController+Math+Spatial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 144078CFBD9428476010D977 /* SCDesktopSwitcherController+Math+Spatial.swift */; };
+		A1B2C3D4E5F60718A9B0C1D2 /* SCDesktopImageCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718A9B0C1D3 /* SCDesktopImageCaptureManager.swift */; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* SCKeyRecorderControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F3 /* SCKeyRecorderControl.swift */; };
 		AA974BA929B7D84C0099A29E /* PreviewPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA974BA829B7D84C0099A29E /* PreviewPanel.swift */; };
 		BC5632A3F59AE2E6D4346735 /* SCDesktopSwitcherController+Interaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38528060B2025B225396B623 /* SCDesktopSwitcherController+Interaction.swift */; };
 		BF0C803A13C409E7F01FBCAB /* SkyLight.framework.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF0C8B94D7994AB9007F6391 /* SkyLight.framework.swift */; };
@@ -234,7 +234,6 @@
 		D04BA14D93726795A6937832 /* LabelAndControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BA2526DC6726E0F7ACF7C /* LabelAndControl.swift */; };
 		D04BA15A1B0C4871EA7CB899 /* GeneralTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BACE22DC907F03D193075 /* GeneralTab.swift */; };
 		D04BA1621718FF26F8D5E75D /* CustomRecorderControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BAE333F7170E87C5AC0EF /* CustomRecorderControl.swift */; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* SCKeyRecorderControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F3 /* SCKeyRecorderControl.swift */; };
 		D04BA1637E125D38546C26E2 /* StackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BA8AC77465E1B2BC947CF /* StackView.swift */; };
 		D04BA1766FBCB2E941D081A5 /* RunningApplicationsEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BA76AEE37D6656EB80126 /* RunningApplicationsEvents.swift */; };
 		D04BA1B133D53572D7B312C2 /* TileFontIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04BA1DF8CAB2FAB7FE9244B /* TileFontIconView.swift */; };
@@ -438,8 +437,8 @@
 		7625FCA2DB19C6FC1E2D7C3B /* SCDesktopSwitcherController+Math.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "SCDesktopSwitcherController+Math.swift"; sourceTree = "<group>"; };
 		8BC270A39B02C92DF1DB39E3 /* SCCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCCoordinator.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718A9B0C1D3 /* SCDesktopImageCaptureManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SCDesktopImageCaptureManager.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F3 /* SCKeyRecorderControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SCKeyRecorderControl.swift; sourceTree = "<group>"; };
 		AA974BA829B7D84C0099A29E /* PreviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewPanel.swift; sourceTree = "<group>"; };
-
 		BF0C800363086A5ED019FE11 /* google_translate_all_terms_locally.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = google_translate_all_terms_locally.py; sourceTree = "<group>"; };
 		BF0C804765D0E6A92C6646CC /* gu */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = gu; path = InfoPlist.strings; sourceTree = "<group>"; };
 		BF0C8070A1BBA8B425C8EF34 /* IOKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IOKit.swift; sourceTree = "<group>"; };
@@ -770,7 +769,6 @@
 		D04BAE298D0D87E4E69A2054 /* default.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = default.html; sourceTree = "<group>"; };
 		D04BAE2BF28F187307C29FDE /* ru */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = ru; path = Localizable.strings; sourceTree = "<group>"; };
 		D04BAE333F7170E87C5AC0EF /* CustomRecorderControl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomRecorderControl.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6A7B8C9D0E1F3 /* SCKeyRecorderControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SCKeyRecorderControl.swift; sourceTree = "<group>"; };
 		D04BAE94A2FD4D9B72830B43 /* favicon-32x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "favicon-32x32.png"; sourceTree = "<group>"; };
 		D04BAED1C4D6BB8E24847E79 /* TitleLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TitleLabel.swift; sourceTree = "<group>"; };
 		D04BAED450528DC3C28FABDE /* Changelog.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Changelog.md; sourceTree = "<group>"; };
@@ -956,10 +954,8 @@
 				144078CFBD9428476010D977 /* SCDesktopSwitcherController+Math+Spatial.swift */,
 				5F74E4A143E8692D55CF67D8 /* SCDesktopSwitcherController+Monitors.swift */,
 				6089A2E41C09AD2CB63E7AA7 /* SCDesktopSwitcherController+Visibility.swift */,
-
 				00839FFD3F51D4D246814E76 /* SCStatusBarController.swift */,
 			);
-			name = "space-commander";
 			path = "space-commander";
 			sourceTree = "<group>";
 		};
@@ -972,7 +968,6 @@
 				8BC270A39B02C92DF1DB39E3 /* SCCoordinator.swift */,
 				A1B2C3D4E5F60718A9B0C1D3 /* SCDesktopImageCaptureManager.swift */,
 			);
-			name = "space-commander";
 			path = "space-commander";
 			sourceTree = "<group>";
 		};
@@ -2167,6 +2162,12 @@
 			attributes = {
 				LastUpgradeCheck = 1620;
 				ORGANIZATIONNAME = lwouis;
+				TargetAttributes = {
+					D04BA5E73DAF232ADE11C97A = {
+						DevelopmentTeam = UF6P8KZZN4;
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = D04BA83C9495F252D87CDF0F /* Build configuration list for PBXProject "alt-tab-macos" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -2688,7 +2689,6 @@
 				8FC2DF055FC7DAF9519A9894 /* SCDesktopSwitcherController+Math+Spatial.swift in Sources */,
 				54CBF33AE3B8DA10DA3FDFAD /* SCDesktopSwitcherController+Monitors.swift in Sources */,
 				085C5284DAD6461CC00B5D26 /* SCDesktopSwitcherController+Visibility.swift in Sources */,
-
 				58F694D1585FE04B694DCE17 /* SCStatusBarController.swift in Sources */,
 				D6E13A0AAE1D4144F6FD5C65 /* ModifierRecorderControl.swift in Sources */,
 				33481CB8DA8E3B936A86872C /* SpacesTab.swift in Sources */,
@@ -3725,7 +3725,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D04BA62D5EACAAAD7BCD3E79 /* release.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = "${TEAM_ID}";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = UF6P8KZZN4;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Release;
 		};
@@ -3733,7 +3736,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D04BA1232AFEEFE90D5CC827 /* debug.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = "${TEAM_ID}";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = UF6P8KZZN4;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Debug;
 		};
