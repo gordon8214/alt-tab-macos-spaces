@@ -25,7 +25,7 @@ class CursorEvents {
     }
 
     private static func observe_() {
-        let eventMask = [CGEventType.leftMouseDown, CGEventType.leftMouseUp, CGEventType.otherMouseUp, CGEventType.mouseMoved].reduce(CGEventMask(0), { $0 | (1 << $1.rawValue) })
+        let eventMask = [CGEventType.leftMouseDown, CGEventType.leftMouseUp, CGEventType.rightMouseDown, CGEventType.rightMouseUp, CGEventType.otherMouseDown, CGEventType.otherMouseUp, CGEventType.mouseMoved].reduce(CGEventMask(0), { $0 | (1 << $1.rawValue) })
         // CGEvent.tapCreate returns nil if ensureAccessibilityCheckboxIsChecked() didn't pass
         eventTap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
@@ -48,6 +48,9 @@ class CursorEvents {
         switch type {
             case .leftMouseDown: return handleLeftMouseDown(cgEvent)
             case .leftMouseUp: return handleLeftMouseUp(cgEvent)
+            case .rightMouseDown: return handleRightMouseDown(cgEvent)
+            case .rightMouseUp: return handleRightMouseUp(cgEvent)
+            case .otherMouseDown: return handleOtherMouseDown(cgEvent)
             case .otherMouseUp: return handleOtherMouseUp(cgEvent)
             case .mouseMoved: return handleMouseMoved(cgEvent)
             case .tapDisabledByUserInput, .tapDisabledByTimeout:
@@ -58,6 +61,7 @@ class CursorEvents {
     }
 
     private static func handleLeftMouseDown(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
+        if TilesView.hasMarkedText() || ContextMenuEvents.isMenuOpen { return Unmanaged.passUnretained(cgEvent) }
         if isPointerInsideSearchField() {
             mouseDownInsideSearchField = true
             return Unmanaged.passUnretained(cgEvent)
@@ -69,6 +73,7 @@ class CursorEvents {
     }
 
     private static func handleLeftMouseUp(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
+        if TilesView.hasMarkedText() || ContextMenuEvents.isMenuOpen { return Unmanaged.passUnretained(cgEvent) }
         if mouseDownInsideSearchField || isPointerInsideSearchField() {
             mouseDownInsideSearchField = false
             return Unmanaged.passUnretained(cgEvent)
@@ -91,14 +96,29 @@ class CursorEvents {
         return nil
     }
 
+    private static func handleRightMouseDown(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
+        if ContextMenuEvents.isMenuOpen || isPointerInsideUi() { return Unmanaged.passUnretained(cgEvent) }
+        return nil
+    }
+
+    private static func handleRightMouseUp(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
+        if ContextMenuEvents.isMenuOpen || isPointerInsideUi() { return Unmanaged.passUnretained(cgEvent) }
+        return nil
+    }
+
+    private static func handleOtherMouseDown(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
+        if ContextMenuEvents.isMenuOpen || isPointerInsideUi() { return Unmanaged.passUnretained(cgEvent) }
+        return nil
+    }
+
     private static func handleOtherMouseUp(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
-        guard isPointerInsideUi(),
-              cgEvent.getIntegerValueField(.mouseEventButtonNumber) == 2,
-              let target = findTileViewUnderPointer(),
-              let window = target.window_ else {
-            return Unmanaged.passUnretained(cgEvent)
+        if ContextMenuEvents.isMenuOpen { return Unmanaged.passUnretained(cgEvent) }
+        if isPointerInsideUi(),
+           cgEvent.getIntegerValueField(.mouseEventButtonNumber) == 2,
+           let target = findTileViewUnderPointer(),
+           let window = target.window_ {
+            window.isWindowlessApp ? window.application.quit() : window.close()
         }
-        window.isWindowlessApp ? window.application.quit() : window.close()
         return nil
     }
 
@@ -107,6 +127,11 @@ class CursorEvents {
             TilesView.thumbnailOverView.updateHover()
         }
         return Unmanaged.passUnretained(cgEvent)
+    }
+
+    static func resetDeadzone() {
+        deadZoneInitialPosition = nil
+        isAllowedToMouseHover = false
     }
 
     static func isAllowedToReactToPointerMovement(_ location: CGPoint) -> Bool {

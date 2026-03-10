@@ -59,6 +59,7 @@ class App: AppCenterApplication {
         isFirstSummon = true
         forceDoNothingOnRelease = false
         TilesView.endSearchSession()
+        ContextMenuEvents.toggle(false)
         CursorEvents.toggle(false)
         TrackpadEvents.reset()
         hideTilesPanelWithoutChangingKeyWindow()
@@ -66,7 +67,7 @@ class App: AppCenterApplication {
             PreviewPanel.shared.orderOut(nil)
         }
         hideAllTooltips()
-        MainMenu.toggle(enabled: true)
+        MainMenu.toggle(true)
     }
 
     /// some tooltips may not be hidden when the main window is hidden; we force it through a private API
@@ -230,6 +231,8 @@ class App: AppCenterApplication {
     }
 
     static func cycleSelection(_ direction: Direction, allowWrap: Bool = true) {
+        (TilesView.scrollView?.documentView as? TilesDocumentView)?.cancelDraggingTimer()
+        CursorEvents.resetDeadzone()
         if direction == .up || direction == .down {
             TilesView.navigateUpOrDown(direction, allowWrap: allowWrap)
         } else {
@@ -329,6 +332,7 @@ class App: AppCenterApplication {
         refreshUi()
         guard appIsBeingUsed else { return }
         TilesPanel.shared.show()
+        Windows.previewSelectedWindowIfNeeded()
         if TilesView.isSearchEditing {
             TilesView.enableSearchEditing()
         }
