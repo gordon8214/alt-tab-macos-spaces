@@ -55,6 +55,8 @@ class Window {
         // the app may have timed out trying to subscribe to app notifications
         // It may be responsive now since it has a window; we attempt again
         application.observeEventsIfEligible()
+        // fetch app icon only if we display that app in the switcher
+        application.fetchAppIcon()
         checkIfFocused()
         Logger.info { self.debugId }
         observeEvents()
@@ -67,6 +69,8 @@ class Window {
         Window.globalCreationCounter += 1
         creationOrder = Window.globalCreationCounter
         debugId = "\(application.debugId) (title:\(title))"
+        // fetch app icon only if we display that app in the switcher
+        application.fetchAppIcon()
         Logger.debug { self.debugId }
     }
 
@@ -112,7 +116,7 @@ class Window {
         if let position, let size,
            let view = (TilesView.recycledViews.first { $0.window_?.cgWindowId == cgWindowId }) {
             if !view.thumbnail.isHidden {
-                let thumbnailSize = TileView.thumbnailSize(screenshot.size(), false)
+                let thumbnailSize = TileView.thumbnailSize(size, false)
                 let newSize = thumbnailSize.width != view.thumbnail.frame.width || thumbnailSize.height != view.thumbnail.frame.height
                 view.thumbnail.updateContents(screenshot, thumbnailSize)
                 // if the thumbnail size has changed, we need to refresh the open UI

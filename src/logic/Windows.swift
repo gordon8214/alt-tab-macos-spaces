@@ -521,6 +521,11 @@ class Windows {
     }
 
     static func removeWindows(_ windows: [Window], _ addWindowlessWindowIfNeeded: Bool) {
+        for w in windows {
+            if w.application.focusedWindow?.cgWindowId == w.cgWindowId {
+                w.application.focusedWindow = nil
+            }
+        }
         let toRemove = windows.map { $0.lastFocusOrder }
         list.removeAll { w in
             if toRemove.contains(w.lastFocusOrder) {
@@ -539,6 +544,7 @@ class Windows {
         if addWindowlessWindowIfNeeded {
             windows.forEach { $0.application.addWindowlessWindowIfNeeded() }
         }
+        lastFocusedWindowTarget = getLastFocusedOrderWindowIndex().map { list[$0].id }
         App.refreshOpenUiAfterExternalEvent([], windowRemoved: true)
     }
 }
